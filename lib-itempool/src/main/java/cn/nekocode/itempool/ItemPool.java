@@ -64,8 +64,12 @@ public final class ItemPool extends ArrayList<Object> {
     }
 
     @NonNull
-    public DecoupleAdapter getAdapter() {
+    public RecyclerView.Adapter getAdapter() {
         return internalAdapter;
+    }
+
+    public void updateViews() {
+        internalAdapter.notifyDataSetChanged();
     }
 
 

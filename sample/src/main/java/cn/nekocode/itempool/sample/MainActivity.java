@@ -46,11 +46,11 @@ public class MainActivity extends AppCompatActivity implements ItemEventHandler 
             case ItemEvent.ITEM_CLICK:
                 if (clazz.equals(TestItem.class)) {
                     Toast.makeText(MainActivity.this,
-                            "You clicked item:" + event.data + ".", Toast.LENGTH_SHORT).show();
+                            "You just clicked item:" + event.data + ".", Toast.LENGTH_SHORT).show();
 
                 } else if (clazz.equals(TestItem2.class)) {
                     Toast.makeText(MainActivity.this,
-                            "You clicked the header.", Toast.LENGTH_SHORT).show();
+                            "You just clicked the header.", Toast.LENGTH_SHORT).show();
                 }
                 break;
         }

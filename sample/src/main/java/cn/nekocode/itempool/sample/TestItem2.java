@@ -17,7 +17,7 @@ public class TestItem2 extends ItemPool.Item<Header> {
 
     @NonNull
     @Override
-    public View onCreateViewHolder(@NonNull LayoutInflater inflater, @NonNull ViewGroup parent) {
+    public View onCreateItemView(@NonNull LayoutInflater inflater, @NonNull ViewGroup parent) {
         View itemView = inflater.inflate(R.layout.item_test2, parent, false);
         textView = (TextView) itemView.findViewById(R.id.textView);
         return itemView;

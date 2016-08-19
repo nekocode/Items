@@ -23,6 +23,6 @@ import android.support.annotation.NonNull;
 public interface ItemEventHandler {
 
     void onEvent(
-            @NonNull Class<? extends Item> clazz,
+            @NonNull Class<? extends ItemPool.Item> clazz,
             @NonNull ItemEvent event);
 }

@@ -36,26 +36,45 @@ public final class ItemPool extends ArrayList<Object> {
     private static final AtomicInteger ID_COUNTER = new AtomicInteger(0);
 
     private final HashMap<Class, ItemWrapper> mapOfWrapper = new HashMap<>();
-    private final SparseArray<Item> mapOfItem = new SparseArray<>();
+    private final SparseArray<Class<? extends Item>> mapOfItemClass = new SparseArray<>();
     private final DecoupleAdapter internalAdapter = new DecoupleAdapter();
 
-    public void addItemType(@NonNull Class<? extends Item> itemClass) {
+    public static abstract class Item<Data> {
+
+        private class InternalViewHolder extends RecyclerView.ViewHolder {
+            private final Item item;
+
+            public InternalViewHolder(View itemView) {
+                super(itemView);
+                this.item = Item.this;
+            }
+        }
+
+        public RecyclerView.ViewHolder onCreateViewHolder(ViewGroup parent) {
+            View itemView = onCreateViewHolder(LayoutInflater.from(parent.getContext()), parent);
+            return new InternalViewHolder(itemView);
+        }
+
+        @NonNull
+        public abstract View onCreateViewHolder(
+                @NonNull LayoutInflater inflater,
+                @NonNull ViewGroup parent);
+
+        public abstract void onBindViewHolder(
+                @NonNull final Data data,
+                ItemEventHandler eventHandler);
+    }
+
+    public void addType(@NonNull Class<? extends Item> itemClass) {
         ParameterizedType parameterizedType = (ParameterizedType) itemClass.getGenericSuperclass();
         Class dataClass = (Class) parameterizedType.getActualTypeArguments()[0];
 
-        Item item;
-        try {
-            item = itemClass.newInstance();
-        } catch (Exception e) {
-            throw new RuntimeException(e.getMessage());
-        }
-
-        ItemWrapper wrapper = new ItemWrapper(item);
+        ItemWrapper wrapper = new ItemWrapper(itemClass);
         mapOfWrapper.put(dataClass, wrapper);
-        mapOfItem.put(wrapper.TYPE_ID, item);
+        mapOfItemClass.put(wrapper.TYPE_ID, itemClass);
     }
 
-    public final void setEventHandler(ItemEventHandler handler) {
+    public final void onEvent(ItemEventHandler handler) {
         Collection<ItemWrapper> itemWrappers = mapOfWrapper.values();
 
         for (ItemWrapper wrapper : itemWrappers) {
@@ -79,32 +98,45 @@ public final class ItemPool extends ArrayList<Object> {
 
     private int getItemType(int index) {
         Class dataClass = get(index).getClass();
-        return mapOfWrapper.get(dataClass).TYPE_ID;
-    }
-
-    private Item getItem(int typeId) {
-        return mapOfItem.get(typeId);
-    }
-
-    private Pair getItem(Class dataClass) {
         ItemWrapper wrapper = mapOfWrapper.get(dataClass);
-        return new Pair(wrapper.item, wrapper.handler);
+        if (wrapper == null) {
+            throw new RuntimeException("No item set for the data type: " + dataClass.getSimpleName());
+        }
+        return wrapper.TYPE_ID;
+    }
+
+    private Class<? extends Item> getItemClass(int typeId) {
+        return mapOfItemClass.get(typeId);
+    }
+
+    private Pair getItemClass(Class dataClass) {
+        ItemWrapper wrapper = mapOfWrapper.get(dataClass);
+        return new Pair(wrapper.itemClass, wrapper.handler);
+    }
+
+    private static Item newItem(Class<? extends Item> itemClass) {
+        Item item;
+        try {
+            item = itemClass.newInstance();
+        } catch (Exception e) {
+            throw new RuntimeException(e.getMessage());
+        }
+        return item;
     }
 
     private static class ItemWrapper {
-        int TYPE_ID;
-        ItemEventHandler handler;
-        Item item;
+        private final int TYPE_ID;
+        private final Class<? extends Item> itemClass;
+        private ItemEventHandler handler;
 
-        ItemWrapper(Item item) {
+        private ItemWrapper(Class<? extends Item> itemClass) {
             TYPE_ID = ID_COUNTER.getAndIncrement();
-            this.item = item;
+            this.itemClass = itemClass;
         }
     }
 
     private class DecoupleAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
-
-        private ItemPool items;
+        private final ItemPool items;
 
         public DecoupleAdapter() {
             this.items = ItemPool.this;
@@ -112,20 +144,18 @@ public final class ItemPool extends ArrayList<Object> {
 
         @Override
         public RecyclerView.ViewHolder onCreateViewHolder(ViewGroup parent, int viewType) {
-            Item item = items.getItem(viewType);
-            RecyclerView.ViewHolder holder =
-                    item.onCreateViewHolder(LayoutInflater.from(parent.getContext()), parent);
-            return holder;
+            Item item = newItem(items.getItemClass(viewType));
+            return item.onCreateViewHolder(parent);
         }
 
         @Override
         public void onBindViewHolder(final RecyclerView.ViewHolder holder, int position) {
             final Object data = items.get(position);
-            Pair<Item, ItemEventHandler> pair = items.getItem(data.getClass());
+            Pair<Class<? extends Item>, ItemEventHandler> pair = items.getItemClass(data.getClass());
 
-            final Item item = pair.first;
+            final Item item = ((Item.InternalViewHolder) holder).item;
             final ItemEventHandler handler = pair.second;
-            item.onBindViewHolder(holder, data, handler);
+            item.onBindViewHolder(data, handler);
 
             holder.itemView.setOnClickListener(new View.OnClickListener() {
                 @Override

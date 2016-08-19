@@ -56,7 +56,7 @@ public class TestItem extends Item<String, TestItem.ViewHolder> {
 }
 ```
 
-Just create an `ItemPool`. No more need adpater and data list. Setup itemtypes for matching data and then you can add start adding data to the ItemPool. It will automatically select the Item to show for the recyclerview.
+Just create an `ItemPool`. No more need adpater and data list. Setup itemtypes for matching data and then you can add data to the ItemPool. It will automatically select the Item to show for the recyclerview.
 
 ```java
 ItemPool items = new ItemPool();

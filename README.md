@@ -22,7 +22,7 @@ dependencies {
 
 ### Usage
 
-Make reusable items for recyclerview.
+Create reusable items for recyclerview.
 
 ```java
 public class TestItem extends ItemPool.Item<String> {
@@ -60,3 +60,4 @@ items.add("B");
 recyclerView.setAdapter(items.getAdapter());
 ```
 
+For more detail about handling of the item event, see the [sample here](sample/src/main/java/cn/nekocode/itempool/sample/MainActivity.java).

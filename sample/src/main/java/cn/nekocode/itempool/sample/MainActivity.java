@@ -53,6 +53,11 @@ public class MainActivity extends AppCompatActivity implements ItemEventHandler 
                             "You just clicked the header.", Toast.LENGTH_SHORT).show();
                 }
                 break;
+
+            case TestItem2.CLICK_TEXT:
+                Toast.makeText(MainActivity.this,
+                        "You just clicked the TextView.", Toast.LENGTH_SHORT).show();
+                break;
         }
     }
 }

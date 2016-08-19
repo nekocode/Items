@@ -162,7 +162,7 @@ public final class ItemPool extends ArrayList<Object> {
                 @Override
                 public void onClick(View v) {
                     if (handler != null)
-                        handler.onEvent(item.getClass(), new ItemEvent(ItemEvent.ITEM_CLICK, holder.getAdapterPosition(), data));
+                        handler.onEvent(item.getClass(), new ItemEvent(ItemEvent.ITEM_CLICK, data));
                 }
             });
 
@@ -170,7 +170,7 @@ public final class ItemPool extends ArrayList<Object> {
                 @Override
                 public boolean onLongClick(View v) {
                     if (handler != null) {
-                        handler.onEvent(item.getClass(), new ItemEvent(ItemEvent.ITEM_LONGCLICK, holder.getAdapterPosition(), data));
+                        handler.onEvent(item.getClass(), new ItemEvent(ItemEvent.ITEM_LONGCLICK, data));
                         return true;
                     }
                     return false;

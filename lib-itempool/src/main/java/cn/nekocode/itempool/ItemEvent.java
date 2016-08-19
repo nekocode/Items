@@ -23,12 +23,10 @@ public class ItemEvent {
     public static final int ITEM_LONGCLICK = 2;
 
     public int action;
-    public int itemIndex;
     public Object data;
 
-    public ItemEvent(int action, int itemIndex, Object data) {
+    public ItemEvent(int action, Object data) {
         this.action = action;
-        this.itemIndex = itemIndex;
         this.data = data;
     }
 }

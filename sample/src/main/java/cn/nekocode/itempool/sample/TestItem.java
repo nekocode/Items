@@ -24,7 +24,7 @@ public class TestItem extends ItemPool.Item<String> {
     }
 
     @Override
-    public void onBindViewHolder(@NonNull String s, ItemEventHandler eventHandler) {
+    public void onBindItem(@NonNull final View itemView, @NonNull String s, ItemEventHandler eventHandler) {
         textView.setText(s);
     }
 }

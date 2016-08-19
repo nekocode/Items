@@ -24,7 +24,7 @@ public class TestItem2 extends ItemPool.Item<Header> {
     }
 
     @Override
-    public void onBindViewHolder(@NonNull Header header, ItemEventHandler eventHandler) {
+    public void onBindItem(@NonNull final View itemView, @NonNull Header header, ItemEventHandler eventHandler) {
         textView.setText("HEADER");
     }
 }

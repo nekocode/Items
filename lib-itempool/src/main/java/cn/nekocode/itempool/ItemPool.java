@@ -60,7 +60,8 @@ public final class ItemPool extends ArrayList<Object> {
                 @NonNull LayoutInflater inflater,
                 @NonNull ViewGroup parent);
 
-        public abstract void onBindViewHolder(
+        public abstract void onBindItem(
+                @NonNull final View itemView,
                 @NonNull final Data data,
                 ItemEventHandler eventHandler);
     }
@@ -155,7 +156,7 @@ public final class ItemPool extends ArrayList<Object> {
 
             final Item item = ((Item.InternalViewHolder) holder).item;
             final ItemEventHandler handler = pair.second;
-            item.onBindViewHolder(data, handler);
+            item.onBindItem(holder.itemView, data, handler);
 
             holder.itemView.setOnClickListener(new View.OnClickListener() {
                 @Override

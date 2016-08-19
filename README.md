@@ -1,7 +1,7 @@
 # ItemPool
 [![Apache 2.0 License](https://img.shields.io/badge/license-Apache%202.0-blue.svg?style=flat)](http://www.apache.org/licenses/LICENSE-2.0.html) [![Release](https://img.shields.io/github/release/nekocode/ItemPool.svg?label=Jitpack)](https://jitpack.io/#nekocode/ItemPool)
 
-Decouple the item(/nested viewholder) from recyclerview's adapter. No more need to write an adapter again.
+Decouple the item(/nested viewholder) from recyclerview's adapter.
 
 ![description](art/description.png)
 
@@ -22,7 +22,7 @@ dependencies {
 
 ### Usage
 
-Make reusable items for recyclerview like the following:
+Make reusable items for recyclerview.
 
 ```java
 public class TestItem extends ItemPool.Item<String> {
@@ -37,13 +37,15 @@ public class TestItem extends ItemPool.Item<String> {
     }
 
     @Override
-    public void onBindViewHolder(@NonNull String s, ItemEventHandler eventHandler) {
+    public void onBindItem(@NonNull final View itemView, @NonNull String s, ItemEventHandler eventHandler) {
         textView.setText(s);
     }
 }
 ```
 
-No more need adpater and data list. You just need an `ItemPool`. Add itemtypes and data to the ItemPool. It will help the recyclerview automatically select the Item to show.
+No more need adpater and data list. You just need an `ItemPool`.
+
+Add itemtypes and data to the ItemPool. It will help the recyclerview automatically select the Item to show.
 
 ```java
 ItemPool items = new ItemPool();

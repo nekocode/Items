@@ -1,12 +1,12 @@
 package cn.nekocode.itempool.sample;
 
 import android.support.annotation.NonNull;
+import android.support.v7.widget.RecyclerView;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.TextView;
 
-import cn.nekocode.itempool.ItemEvent;
 import cn.nekocode.itempool.ItemEventHandler;
 import cn.nekocode.itempool.ItemPool;
 
@@ -26,12 +26,12 @@ public class TestItem2 extends ItemPool.Item<Header> {
     }
 
     @Override
-    public void onBindItem(@NonNull final View itemView, @NonNull Header header, final ItemEventHandler eventHandler) {
+    public void onBindItem(@NonNull final RecyclerView.ViewHolder holder, @NonNull Header header, final ItemEventHandler eventHandler) {
         textView.setText("HEADER");
         textView.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                eventHandler.onEvent(TestItem2.class, new ItemEvent(CLICK_TEXT, null));
+                eventHandler.onEvent(TestItem2.class, event(CLICK_TEXT, null));
             }
         });
     }

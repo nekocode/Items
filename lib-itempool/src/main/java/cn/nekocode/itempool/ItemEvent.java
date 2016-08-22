@@ -15,6 +15,8 @@
  */
 package cn.nekocode.itempool;
 
+import android.support.v7.widget.RecyclerView;
+
 /**
  * Created by nekocode on 16/8/17.
  */
@@ -24,9 +26,11 @@ public class ItemEvent {
 
     public int action;
     public Object data;
+    public RecyclerView.ViewHolder holder;
 
-    public ItemEvent(int action, Object data) {
+    public ItemEvent(int action, Object data, RecyclerView.ViewHolder holder) {
         this.action = action;
         this.data = data;
+        this.holder = holder;
     }
 }

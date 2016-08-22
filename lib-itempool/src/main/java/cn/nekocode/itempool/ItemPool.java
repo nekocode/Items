@@ -49,11 +49,7 @@ public final class ItemPool extends ArrayList<Object> {
                 this.item = Item.this;
             }
         }
-
-        private RecyclerView.ViewHolder onCreateViewHolder(ViewGroup parent) {
-            View itemView = onCreateItemView(LayoutInflater.from(parent.getContext()), parent);
-            return new InternalViewHolder(itemView);
-        }
+        private InternalViewHolder internalViewHolder;
 
         @NonNull
         public abstract View onCreateItemView(
@@ -61,9 +57,19 @@ public final class ItemPool extends ArrayList<Object> {
                 @NonNull ViewGroup parent);
 
         public abstract void onBindItem(
-                @NonNull final View itemView,
+                @NonNull final RecyclerView.ViewHolder holder,
                 @NonNull final Data data,
                 ItemEventHandler eventHandler);
+
+        public ItemEvent event(int action, Object data) {
+            return new ItemEvent(action, data, internalViewHolder);
+        }
+
+        private RecyclerView.ViewHolder onCreateViewHolder(ViewGroup parent) {
+            View itemView = onCreateItemView(LayoutInflater.from(parent.getContext()), parent);
+            internalViewHolder = new InternalViewHolder(itemView);
+            return internalViewHolder;
+        }
     }
 
     public void addType(@NonNull Class<? extends Item> itemClass) {
@@ -156,13 +162,13 @@ public final class ItemPool extends ArrayList<Object> {
 
             final Item item = ((Item.InternalViewHolder) holder).item;
             final ItemEventHandler handler = pair.second;
-            item.onBindItem(holder.itemView, data, handler);
+            item.onBindItem(holder, data, handler);
 
             holder.itemView.setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View v) {
                     if (handler != null)
-                        handler.onEvent(item.getClass(), new ItemEvent(ItemEvent.ITEM_CLICK, data));
+                        handler.onEvent(item.getClass(), new ItemEvent(ItemEvent.ITEM_CLICK, data, holder));
                 }
             });
 
@@ -170,7 +176,7 @@ public final class ItemPool extends ArrayList<Object> {
                 @Override
                 public boolean onLongClick(View v) {
                     if (handler != null) {
-                        handler.onEvent(item.getClass(), new ItemEvent(ItemEvent.ITEM_LONGCLICK, data));
+                        handler.onEvent(item.getClass(), new ItemEvent(ItemEvent.ITEM_LONGCLICK, data, holder));
                         return true;
                     }
                     return false;

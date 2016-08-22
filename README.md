@@ -37,7 +37,7 @@ public class TestItem extends ItemPool.Item<String> {
     }
 
     @Override
-    public void onBindItem(@NonNull final View itemView, @NonNull String s, ItemEventHandler eventHandler) {
+    public void onBindItem(@NonNull final RecyclerView.ViewHolder holder, @NonNull String s, ItemEventHandler eventHandler) {
         textView.setText(s);
     }
 }

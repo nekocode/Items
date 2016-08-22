@@ -1,6 +1,7 @@
 package cn.nekocode.itempool.sample;
 
 import android.support.annotation.NonNull;
+import android.support.v7.widget.RecyclerView;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -24,7 +25,7 @@ public class TestItem extends ItemPool.Item<String> {
     }
 
     @Override
-    public void onBindItem(@NonNull final View itemView, @NonNull String s, ItemEventHandler eventHandler) {
+    public void onBindItem(@NonNull final RecyclerView.ViewHolder holder, @NonNull String s, ItemEventHandler eventHandler) {
         textView.setText(s);
     }
 }

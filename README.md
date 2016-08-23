@@ -59,13 +59,13 @@ items.attachTo(recyclerView);
 
 When data changes, you can call the `notify*` functions just like adapter's. Such as:
 
-```
+```java
 items.notifyDataSetChanged();
 ```
 
 If you want to handler the item event such as itemView click / long click, or childView's event. You can setup an `ItemEventHandler` for the `ItemPool`:
 
-```
+```java
 items.onEvent(new ItemEventHandler() {
     @Override
     public void onEvent(@NonNull Class<? extends Item> clazz, @NonNull ItemEvent event) {
@@ -92,7 +92,7 @@ items.onEvent(new ItemEventHandler() {
 
 It will auto trigger the `ItemEvent.ITEM_CLICK` and `ItemEvent.ITEM_LONGCLICK` events. But you should trigger childView's event manually. For example:
 
-```
+```java
 public class TestItem2 extends Item<Header> {
     public static final int CLICK_TEXT = 1;
     TextView textView;

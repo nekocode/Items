@@ -1,7 +1,9 @@
 # ItemPool
 [![Apache 2.0 License](https://img.shields.io/badge/license-Apache%202.0-blue.svg?style=flat)](http://www.apache.org/licenses/LICENSE-2.0.html) [![Release](https://img.shields.io/github/release/nekocode/ItemPool.svg?label=Jitpack)](https://jitpack.io/#nekocode/ItemPool)
 
-Decouple the item(/nested viewholder) from recyclerview's adapter. Reuse itemview in every recyclerview.
+Decouple the item(/nested viewholder) from recyclerview's adapter. 
+
+Reuse itemview in every recyclerview.
 
 ![description](art/description.png)
 
@@ -22,7 +24,7 @@ dependencies {
 
 ## Usage
 
-Firstly, create `Item` for recyclerview. It can be used for every `ItemPool`. It's pluggable.
+Firstly, create a new `Item` class. It help create the itemView and bind data to it, just like the behavior of `ViewHolder`. It is pluggable and can be used for every `ItemPool`(`RecyclerView`). Note that the generic type argument in class declaration means the binding data type of this item.
 
 ```java
 public class TestItem extends Item<String> {
@@ -43,7 +45,7 @@ public class TestItem extends Item<String> {
 }
 ```
 
-And then obtain an `ItemPool` instance. (You don't need to create adapter or data list. The `ItemPool` like a mixture of them.) Add itemtypes and data to it. It will let the recyclerview automatically select the `Item` matching the data type to show.
+And then obtain an `ItemPool` instance. (You don't need to create adapter or data list. The `ItemPool` like a mixture of them.) Add itemtypes and data to it. It will automatically select the item that is matched with the data element's type for the recyclerview.
 
 ```java
 ItemPool items = new ItemPool();

@@ -21,8 +21,8 @@ import android.support.v7.widget.RecyclerView;
  * Created by nekocode on 16/8/17.
  */
 public class ItemEvent {
-    public static final int ITEM_CLICK = 1;
-    public static final int ITEM_LONGCLICK = 2;
+    public static final int ITEM_CLICK = -1201;
+    public static final int ITEM_LONGCLICK = -1202;
 
     public int action;
     public Object data;

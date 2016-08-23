@@ -43,22 +43,26 @@ public class MainActivity extends AppCompatActivity implements ItemEventHandler 
 
     @Override
     public void onEvent(@NonNull Class<? extends Item> clazz, @NonNull ItemEvent event) {
-        switch (event.action) {
-            case ItemEvent.ITEM_CLICK:
-                if (clazz.equals(TestItem.class)) {
+        if (clazz.equals(TestItem.class)) {
+            switch (event.action) {
+                case ItemEvent.ITEM_CLICK:
                     Toast.makeText(MainActivity.this,
                             "You just clicked item:" + event.data + ".", Toast.LENGTH_SHORT).show();
+                    break;
+            }
 
-                } else if (clazz.equals(TestItem2.class)) {
+        } else if (clazz.equals(TestItem2.class)) {
+            switch (event.action) {
+                case ItemEvent.ITEM_CLICK:
                     Toast.makeText(MainActivity.this,
                             "You just clicked the header.", Toast.LENGTH_SHORT).show();
-                }
-                break;
+                    break;
 
-            case TestItem2.CLICK_TEXT:
-                Toast.makeText(MainActivity.this,
-                        "You just clicked the TextView.", Toast.LENGTH_SHORT).show();
-                break;
+                case TestItem2.CLICK_TEXT:
+                    Toast.makeText(MainActivity.this,
+                            "You just clicked the TextView.", Toast.LENGTH_SHORT).show();
+                    break;
+            }
         }
     }
 }

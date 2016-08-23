@@ -1,11 +1,11 @@
 # ItemPool
 [![Apache 2.0 License](https://img.shields.io/badge/license-Apache%202.0-blue.svg?style=flat)](http://www.apache.org/licenses/LICENSE-2.0.html) [![Release](https://img.shields.io/github/release/nekocode/ItemPool.svg?label=Jitpack)](https://jitpack.io/#nekocode/ItemPool)
 
-Decouple the item(/nested viewholder) from recyclerview's adapter.
+Decouple the item(/nested viewholder) from recyclerview's adapter. Reuse itemview in every recyclerview.
 
 ![description](art/description.png)
 
-### Using with gradle
+## Setting up
 - Add the JitPack repository to your project root build.gradle:
 ```gradle
 repositories {
@@ -20,9 +20,9 @@ dependencies {
 }
 ```
 
-### Usage
+## Usage
 
-Create reusable items for recyclerview.
+Firstly, create `Item` for recyclerview. It can be used for every `ItemPool`. It's pluggable.
 
 ```java
 public class TestItem extends Item<String> {
@@ -43,20 +43,76 @@ public class TestItem extends Item<String> {
 }
 ```
 
-No more need adpater and data list. You just need an `ItemPool`.
-
-Add itemtypes and data to the ItemPool. It will help the recyclerview automatically select the Item to show.
+And then obtain an `ItemPool` instance. (You don't need to create adapter or data list. The `ItemPool` like a mixture of them.) Add itemtypes and data to it. It will let the recyclerview automatically select the `Item` matching the data type to show.
 
 ```java
 ItemPool items = new ItemPool();
 items.addType(TestItem.class);
 items.addType(TestItem2.class);
 
-items.add(new TestData2());
-items.add(new TestData());
-items.add(new TestData2());
+items.add(new Header());
+items.add("A");
+items.add("B");
 
 items.attachTo(recyclerView);
 ```
 
-For more detail about handling of the item event, see the [sample here](sample/src/main/java/cn/nekocode/itempool/sample/MainActivity.java).
+When data changes, you can call the `notify*` functions just like adapter's. Such as:
+
+```
+items.notifyDataSetChanged();
+```
+
+If you want to handler the item event such as itemView click / long click, or childView's event. You can setup an `ItemEventHandler` for the `ItemPool`:
+
+```
+items.onEvent(new ItemEventHandler() {
+    @Override
+    public void onEvent(@NonNull Class<? extends Item> clazz, @NonNull ItemEvent event) {
+        if (clazz.equals(TestItem.class)) {
+            switch (event.action) {
+                case ItemEvent.ITEM_CLICK:
+                    // Handler the event
+                    break;
+            }
+
+        } else if (clazz.equals(TestItem2.class)) {
+            switch (event.action) {
+                case ItemEvent.ITEM_CLICK:
+                    // Handler the event
+                    break;
+
+                case TestItem2.CLICK_TEXT:
+                    // Handler the event
+                    break;
+            }
+    }
+});
+```
+
+It will auto trigger the `ItemEvent.ITEM_CLICK` and `ItemEvent.ITEM_LONGCLICK` events. But you should trigger childView's event manually. For example:
+
+```
+public class TestItem2 extends Item<Header> {
+    public static final int CLICK_TEXT = 1;
+    TextView textView;
+
+    // ...
+
+    @Override
+    public void onBindItem(@NonNull final RecyclerView.ViewHolder holder, @NonNull Header header, final ItemEventHandler eventHandler) {
+        textView.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                eventHandler.onEvent(TestItem2.class, event(CLICK_TEXT, null));
+            }
+        });
+    }
+}
+```
+
+## Note that
+
+It can help you reduce a lot of code but it lose the flexibility of the recyclerview's adapter. In some cases you still need to create an adapter.
+
+By the way, you can also try the [AdapterDelegates](https://github.com/sockeqwe/AdapterDelegates) or [FastAdapter](https://github.com/mikepenz/FastAdapter).

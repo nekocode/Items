@@ -14,7 +14,7 @@ import cn.nekocode.itempool.ItemEventHandler;
  * Created by nekocode on 16/8/17.
  */
 public class TestItem2 extends Item<Header> {
-    public static final int CLICK_TEXT = 4;
+    public static final int CLICK_TEXT = 1;
     TextView textView;
 
     @NonNull

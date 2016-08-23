@@ -7,13 +7,13 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.TextView;
 
+import cn.nekocode.itempool.Item;
 import cn.nekocode.itempool.ItemEventHandler;
-import cn.nekocode.itempool.ItemPool;
 
 /**
  * Created by nekocode on 16/8/17.
  */
-public class TestItem extends ItemPool.Item<String> {
+public class TestItem extends Item<String> {
     TextView textView;
 
     @NonNull

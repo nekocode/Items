@@ -7,6 +7,7 @@ import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.widget.Toast;
 
+import cn.nekocode.itempool.Item;
 import cn.nekocode.itempool.ItemEvent;
 import cn.nekocode.itempool.ItemEventHandler;
 import cn.nekocode.itempool.ItemPool;
@@ -37,11 +38,11 @@ public class MainActivity extends AppCompatActivity implements ItemEventHandler 
         items.add("F");
         items.add("G");
 
-        recyclerView.setAdapter(items.getAdapter());
+        items.attachTo(recyclerView);
     }
 
     @Override
-    public void onEvent(@NonNull Class<? extends ItemPool.Item> clazz, @NonNull ItemEvent event) {
+    public void onEvent(@NonNull Class<? extends Item> clazz, @NonNull ItemEvent event) {
         switch (event.action) {
             case ItemEvent.ITEM_CLICK:
                 if (clazz.equals(TestItem.class)) {

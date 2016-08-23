@@ -25,7 +25,7 @@ dependencies {
 Create reusable items for recyclerview.
 
 ```java
-public class TestItem extends ItemPool.Item<String> {
+public class TestItem extends Item<String> {
     TextView textView;
 
     @NonNull
@@ -51,13 +51,12 @@ Add itemtypes and data to the ItemPool. It will help the recyclerview automatica
 ItemPool items = new ItemPool();
 items.addType(TestItem.class);
 items.addType(TestItem2.class);
-items.onEvent(this);
 
-items.add(new Header());
-items.add("A");
-items.add("B");
+items.add(new TestData2());
+items.add(new TestData());
+items.add(new TestData2());
 
-recyclerView.setAdapter(items.getAdapter());
+items.attachTo(recyclerView);
 ```
 
 For more detail about handling of the item event, see the [sample here](sample/src/main/java/cn/nekocode/itempool/sample/MainActivity.java).

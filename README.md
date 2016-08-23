@@ -24,7 +24,7 @@ dependencies {
 
 ## Usage
 
-Firstly, create a new `Item` class. It help create the itemView and bind data to it, just like the behavior of `ViewHolder`. It is pluggable and can be used for every `ItemPool`(`RecyclerView`). Note that the generic type argument in class declaration means the binding data type of this item.
+Firstly, create a new `Item` class. It can help create the itemView and bind data to the view, just like the behavior of `ViewHolder`. It is pluggable and can be used for every `ItemPool`(`RecyclerView`). Please note that the generic type argument in class declaration define the binding data type of this item.
 
 ```java
 public class TestItem extends Item<String> {
@@ -45,7 +45,7 @@ public class TestItem extends Item<String> {
 }
 ```
 
-And then obtain an `ItemPool` instance. (You don't need to create adapter or data list. The `ItemPool` like a mixture of them.) Add itemtypes and data to it. It will automatically select the item that is matched with the data element's type for the recyclerview.
+And then obtain an `ItemPool` instance. (You don't need to create adapter or data list. The `ItemPool` like a mixture of them.) The next step is to add item types (the class of item) and data to it. It will automatically select the matched item for the data element.
 
 ```java
 ItemPool items = new ItemPool();
@@ -65,7 +65,7 @@ When data changes, you can call the `notify*` functions just like adapter's. Suc
 items.notifyDataSetChanged();
 ```
 
-If you want to handler the item event such as itemView click / long click, or childView's event. You can setup an `ItemEventHandler` for the `ItemPool`:
+If you want to handler the item's events such as itemView click / long click, or childView's event. You can setup an `ItemEventHandler` for the `ItemPool`:
 
 ```java
 items.onEvent(new ItemEventHandler() {
@@ -92,7 +92,7 @@ items.onEvent(new ItemEventHandler() {
 });
 ```
 
-It will auto trigger the `ItemEvent.ITEM_CLICK` and `ItemEvent.ITEM_LONGCLICK` events. But you should trigger childView's event manually. For example:
+However, it will auto trigger the `ItemEvent.ITEM_CLICK` and `ItemEvent.ITEM_LONGCLICK` events. But you should trigger childView's event manually. For example:
 
 ```java
 public class TestItem2 extends Item<Header> {

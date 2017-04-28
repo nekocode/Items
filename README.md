@@ -7,16 +7,12 @@ Reuse itemview in every recyclerview.
 
 ![description](art/description.png)
 
-## Setting up
-- Add the JitPack repository to your project root build.gradle:
+## Install
+
 ```gradle
 repositories {
     maven { url "https://jitpack.io" }
 }
-```
-
-- Add the dependency to your app or lib build.gradle:
-```gradle
 dependencies {
     compile 'com.github.nekocode:ItemPool:{lastest-version}'
 }
@@ -24,7 +20,7 @@ dependencies {
 
 ## Usage
 
-Firstly, create a new `Item` class. It can help create the itemView and bind data to the view, just like the behavior of `ViewHolder`. It is pluggable and can be used for every `ItemPool`(`RecyclerView`). Please note that the generic type argument in class declaration define the binding data type of this item.
+Firstly, create a new `Item` (It's a bit similar to the `ViewHolder`). Override the `onCreateItemView()` method to create the view for this item. And override the `onBindItem()` method for binding the corresponding type (the generic type of the class) of data to the item view.
 
 ```java
 public class TestItem extends Item<String> {
@@ -45,27 +41,35 @@ public class TestItem extends Item<String> {
 }
 ```
 
-And then obtain an `ItemPool` instance. (You don't need to create adapter or data list. The `ItemPool` like a mixture of them.) The next step is to add item types (the class of item) and data to it. It will automatically select the matched item for the data element.
+And then obtain an `ItemPool` instance. It extends the `ArrayList<Object>` so you can add any data object to it. And for telling the itempool which `Item` will show in the recyclerview, you need to add classes of items.
 
 ```java
 ItemPool items = new ItemPool();
 items.addType(TestItem.class);
 items.addType(TestItem2.class);
 
-items.add(new Header());
+items.add(new ItemData());
 items.add("A");
 items.add("B");
+```
 
+Attach this itempool to the target recyclerview.
+
+```java
 items.attachTo(recyclerView);
 ```
 
-When data changes, you can call the `notify*` functions just like adapter's. Such as:
+It just like a mixture of data list and adapter because it also has the `notifyXXX()` methods for refreshing the recyclerview.
 
 ```java
 items.notifyDataSetChanged();
 ```
 
-If you want to handler the item's events such as itemView click / long click, or childView's event. You can setup an `ItemEventHandler` for the `ItemPool`:
+**That's all! You don't need create `Adapter` any more! And every `Item` you create can be reused in any new recyclerview!**
+
+### Handle view event
+
+If you want to handle the item's view events. You can set an `ItemEventHandler` for the itempool:
 
 ```java
 items.onEvent(new ItemEventHandler() {
@@ -92,7 +96,7 @@ items.onEvent(new ItemEventHandler() {
 });
 ```
 
-However, it will auto trigger the `ItemEvent.ITEM_CLICK` and `ItemEvent.ITEM_LONGCLICK` events. But you should trigger childView's event manually. For example:
+It will auto trigger the `ItemEvent.ITEM_CLICK` and `ItemEvent.ITEM_LONGCLICK` events internally. But you need to manually trigger other view events that you want to handle. For example:
 
 ```java
 public class TestItem2 extends Item<Header> {
@@ -112,9 +116,3 @@ public class TestItem2 extends Item<Header> {
     }
 }
 ```
-
-## Note that
-
-It can help you reduce a lot of code but it lose the flexibility of the recyclerview's adapter. In some cases you still need to create an adapter.
-
-By the way, you can also try the [AdapterDelegates](https://github.com/sockeqwe/AdapterDelegates) or [FastAdapter](https://github.com/mikepenz/FastAdapter).

@@ -35,7 +35,7 @@ public class TestItem extends Item<String> {
     }
 
     @Override
-    public void onBindItem(@NonNull final RecyclerView.ViewHolder holder, @NonNull String s) {
+    public void onBindItem(@NonNull String s) {
         textView.setText(s);
     }
 }

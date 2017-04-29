@@ -16,7 +16,6 @@
 package cn.nekocode.itempool;
 
 import android.support.annotation.NonNull;
-import android.support.annotation.Nullable;
 import android.support.v7.widget.RecyclerView;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -55,7 +54,7 @@ public abstract class Item<T> {
 
     void onBindData(T data) {
         this.data = data;
-        onBindItem(holder, data);
+        onBindItem(data);
     }
 
     @NonNull
@@ -63,9 +62,7 @@ public abstract class Item<T> {
             @NonNull LayoutInflater inflater,
             @NonNull ViewGroup parent);
 
-    public abstract void onBindItem(
-            @NonNull final RecyclerView.ViewHolder holder,
-            @NonNull final T data);
+    public abstract void onBindItem(@NonNull final T data);
 
     public RecyclerView.ViewHolder getViewHolder() {
         return holder;

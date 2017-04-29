@@ -98,7 +98,7 @@ public class TestItem2 extends Item<Header> implements View.OnClickListener {
 
     private TextView textView;
 
-    // ,,,
+    // ...
 
     @NonNull
     @Override

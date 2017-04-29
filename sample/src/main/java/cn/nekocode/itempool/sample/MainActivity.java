@@ -12,57 +12,60 @@ import cn.nekocode.itempool.ItemEvent;
 import cn.nekocode.itempool.ItemEventHandler;
 import cn.nekocode.itempool.ItemPool;
 
-public class MainActivity extends AppCompatActivity implements ItemEventHandler {
+public class MainActivity extends AppCompatActivity {
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
-        RecyclerView recyclerView = (RecyclerView) findViewById(R.id.recyclerView);
+        final RecyclerView recyclerView = (RecyclerView) findViewById(R.id.recyclerView);
         assert recyclerView != null;
 
         recyclerView.setLayoutManager(new LinearLayoutManager(this));
 
-        ItemPool items = new ItemPool();
-        items.addType(TestItem.class);
-        items.addType(TestItem2.class);
-        items.onEvent(this);
+        final ItemPool itemPool = new ItemPool();
+        itemPool.addType(TestItem.class);
+        itemPool.addType(TestItem2.class);
 
-        items.add(new Header());
-        items.add("A");
-        items.add("B");
-        items.add("C");
-        items.add("D");
-        items.add("E");
-        items.add("F");
-        items.add("G");
+        itemPool.add(new Header());
+        itemPool.add("A");
+        itemPool.add("B");
+        itemPool.add("C");
+        itemPool.add("D");
+        itemPool.add("E");
+        itemPool.add("F");
+        itemPool.add("G");
 
-        items.attachTo(recyclerView);
-    }
+        itemPool.attachTo(recyclerView);
 
-    @Override
-    public void onEvent(@NonNull Class<? extends Item> clazz, @NonNull ItemEvent event) {
-        if (clazz.equals(TestItem.class)) {
-            switch (event.action) {
-                case ItemEvent.ITEM_CLICK:
-                    Toast.makeText(MainActivity.this,
-                            "You just clicked item:" + event.data + ".", Toast.LENGTH_SHORT).show();
-                    break;
+        itemPool.onEvent(TestItem.class, new ItemEventHandler() {
+            @Override
+            public void onEvent(@NonNull Class<? extends Item> clazz, @NonNull ItemEvent event) {
+                switch (event.getAction()) {
+                    case Item.EVENT_ITEM_CLICK:
+                        Toast.makeText(MainActivity.this,
+                                "You just clicked item:" + event.getData() + ".", Toast.LENGTH_SHORT).show();
+                        break;
+                }
             }
+        });
 
-        } else if (clazz.equals(TestItem2.class)) {
-            switch (event.action) {
-                case ItemEvent.ITEM_CLICK:
-                    Toast.makeText(MainActivity.this,
-                            "You just clicked the header.", Toast.LENGTH_SHORT).show();
-                    break;
+        itemPool.onEvent(TestItem2.class, new ItemEventHandler() {
+            @Override
+            public void onEvent(@NonNull Class<? extends Item> clazz, @NonNull ItemEvent event) {
+                switch (event.getAction()) {
+                    case Item.EVENT_ITEM_CLICK:
+                        Toast.makeText(MainActivity.this,
+                                "You just clicked the header.", Toast.LENGTH_SHORT).show();
+                        break;
 
-                case TestItem2.CLICK_TEXT:
-                    Toast.makeText(MainActivity.this,
-                            "You just clicked the TextView.", Toast.LENGTH_SHORT).show();
-                    break;
+                    case TestItem2.EVENT_TEXT_CLICK:
+                        Toast.makeText(MainActivity.this,
+                                "You just clicked the TextView.", Toast.LENGTH_SHORT).show();
+                        break;
+                }
             }
-        }
+        });
     }
 }

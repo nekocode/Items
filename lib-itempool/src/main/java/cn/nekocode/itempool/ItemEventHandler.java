@@ -1,5 +1,5 @@
 /*
- * Copyright 2016 nekocode
+ * Copyright 2016 nekocode (nekocode.cn@gmail.com)
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,7 +18,7 @@ package cn.nekocode.itempool;
 import android.support.annotation.NonNull;
 
 /**
- * Created by nekocode on 16/8/16.
+ * @author nekocode (nekocode.cn@gmail.com)
  */
 public interface ItemEventHandler {
 

@@ -1,5 +1,5 @@
 /*
- * Copyright 2016 nekocode
+ * Copyright 2016 nekocode (nekocode.cn@gmail.com)
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,25 +16,47 @@
 package cn.nekocode.itempool;
 
 import android.support.annotation.NonNull;
+import android.support.annotation.Nullable;
 import android.support.v7.widget.RecyclerView;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 
 /**
- * Created by nekocode on 16/8/23.
+ * @author nekocode (nekocode.cn@gmail.com)
  */
-public abstract class Item<Data> {
+public abstract class Item<T> {
+    public static final int EVENT_ITEM_CLICK = -1201;
 
-    protected class InternalViewHolder extends RecyclerView.ViewHolder {
-        protected final Item item;
+    private ViewHolder holder;
+    private RecyclerView.Adapter<RecyclerView.ViewHolder> adapter;
+    private ItemEventHandler eventHandler;
+    private T data;
 
-        public InternalViewHolder(View itemView) {
-            super(itemView);
-            this.item = Item.this;
-        }
+
+    RecyclerView.ViewHolder onCreateViewHolder(
+            RecyclerView.Adapter<RecyclerView.ViewHolder> adapter,
+            final ItemEventHandler handler,
+            ViewGroup parent) {
+
+        this.adapter = adapter;
+        this.eventHandler = handler;
+        holder = new ViewHolder(onCreateItemView(LayoutInflater.from(parent.getContext()), parent));
+
+        holder.itemView.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                event(EVENT_ITEM_CLICK, getData());
+            }
+        });
+
+        return holder;
     }
-    private InternalViewHolder internalViewHolder;
+
+    void onBindData(T data) {
+        this.data = data;
+        onBindItem(holder, data);
+    }
 
     @NonNull
     public abstract View onCreateItemView(
@@ -43,16 +65,33 @@ public abstract class Item<Data> {
 
     public abstract void onBindItem(
             @NonNull final RecyclerView.ViewHolder holder,
-            @NonNull final Data data,
-            ItemEventHandler eventHandler);
+            @NonNull final T data);
 
-    public ItemEvent event(int action, Object data) {
-        return new ItemEvent(action, data, internalViewHolder);
+    public RecyclerView.ViewHolder getViewHolder() {
+        return holder;
     }
 
-    protected RecyclerView.ViewHolder onCreateViewHolder(ViewGroup parent) {
-        View itemView = onCreateItemView(LayoutInflater.from(parent.getContext()), parent);
-        internalViewHolder = new InternalViewHolder(itemView);
-        return internalViewHolder;
+    public RecyclerView.Adapter<RecyclerView.ViewHolder> getAdapter() {
+        return adapter;
+    }
+
+    public T getData() {
+        return data;
+    }
+
+    public void event(int action, Object data) {
+        if (eventHandler != null) {
+            eventHandler.onEvent(Item.this.getClass(), new ItemEvent(action, data, holder));
+        }
+    }
+
+
+    class ViewHolder extends RecyclerView.ViewHolder {
+        final Item item;
+
+        ViewHolder(View itemView) {
+            super(itemView);
+            this.item = Item.this;
+        }
     }
 }

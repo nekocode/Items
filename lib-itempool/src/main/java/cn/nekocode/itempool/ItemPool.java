@@ -1,5 +1,5 @@
 /*
- * Copyright 2016 nekocode
+ * Copyright 2016 nekocode (nekocode.cn@gmail.com)
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,51 +16,51 @@
 package cn.nekocode.itempool;
 
 import android.support.annotation.NonNull;
-import android.support.v4.util.Pair;
+import android.support.annotation.Nullable;
 import android.support.v7.widget.RecyclerView;
 import android.util.SparseArray;
 
 import java.lang.reflect.ParameterizedType;
 import java.util.ArrayList;
-import java.util.Collection;
 import java.util.HashMap;
 import java.util.concurrent.atomic.AtomicInteger;
 
 /**
- * Created by nekocode on 16/8/16.
+ * @author nekocode (nekocode.cn@gmail.com)
  */
 public final class ItemPool extends ArrayList<Object> {
     private static final AtomicInteger ID_COUNTER = new AtomicInteger(0);
 
     private final HashMap<Class, ItemType> mapOfType = new HashMap<>();
+    private final HashMap<Class<? extends Item>, Class> mapOfDataClass = new HashMap<>();
     private final SparseArray<Class<? extends Item>> mapOfItemClass = new SparseArray<>();
     private final ItemAdapter internalAdapter = new ItemAdapter(this);
 
-    public void addType(@NonNull Class<? extends Item> itemClass) {
-        ParameterizedType parameterizedType = (ParameterizedType) itemClass.getGenericSuperclass();
-        Class dataClass = (Class) parameterizedType.getActualTypeArguments()[0];
 
-        ItemType type = new ItemType(itemClass);
+    public void addType(@NonNull Class<? extends Item> itemClass) {
+        final ParameterizedType parameterizedType = (ParameterizedType) itemClass.getGenericSuperclass();
+        final Class dataClass = (Class) parameterizedType.getActualTypeArguments()[0];
+
+        final ItemType type = new ItemType(itemClass);
         mapOfType.put(dataClass, type);
+        mapOfDataClass.put(itemClass, dataClass);
         mapOfItemClass.put(type.TYPE_ID, itemClass);
     }
 
-    public void onEvent(ItemEventHandler handler) {
-        Collection<ItemType> itemTypes = mapOfType.values();
-
-        for (ItemType type : itemTypes) {
-            type.handler = handler;
-        }
+    public void onEvent(@NonNull Class<? extends Item> itemClass, @Nullable ItemEventHandler handler) {
+        final Class dataClass = mapOfDataClass.get(itemClass);
+        final ItemType itemType = mapOfType.get(dataClass);
+        itemType.handler = handler;
     }
 
-    public void attachTo(RecyclerView recyclerView) {
+    public void attachTo(@NonNull RecyclerView recyclerView) {
         recyclerView.setAdapter(internalAdapter);
     }
 
-
-    /**
-     * Transfer to the internal adapter
-     */
+    @NonNull
+    public RecyclerView.Adapter<RecyclerView.ViewHolder> getAdapter() {
+        return internalAdapter;
+    }
 
     public void notifyDataSetChanged() {
         internalAdapter.notifyDataSetChanged();
@@ -95,29 +95,25 @@ public final class ItemPool extends ArrayList<Object> {
     }
 
 
-    /**
-     * Protected and private members
-     */
-
-    protected int getItemType(int index) {
-        Class dataClass = get(index).getClass();
-        ItemType type = mapOfType.get(dataClass);
+    int getItemType(int index) {
+        final Class dataClass = get(index).getClass();
+        final ItemType type = mapOfType.get(dataClass);
         if (type == null) {
             throw new RuntimeException("No item set for the data type: " + dataClass.getSimpleName());
         }
         return type.TYPE_ID;
     }
 
-    protected Class<? extends Item> getItemClass(int typeId) {
+    Class<? extends Item> getItemClass(int typeId) {
         return mapOfItemClass.get(typeId);
     }
 
-    protected Pair getItemClass(Class dataClass) {
-        ItemType type = mapOfType.get(dataClass);
-        return new Pair(type.itemClass, type.handler);
+    ItemType getItemType(Class<? extends Item> itemClass) {
+        final Class dataClass = mapOfDataClass.get(itemClass);
+        return mapOfType.get(dataClass);
     }
 
-    private static class ItemType {
+    static class ItemType {
         private final int TYPE_ID;
         private final Class<? extends Item> itemClass;
         private ItemEventHandler handler;
@@ -125,6 +121,18 @@ public final class ItemPool extends ArrayList<Object> {
         private ItemType(Class<? extends Item> itemClass) {
             TYPE_ID = ID_COUNTER.getAndIncrement();
             this.itemClass = itemClass;
+        }
+
+        public int getTYPE_ID() {
+            return TYPE_ID;
+        }
+
+        public Class<? extends Item> getItemClass() {
+            return itemClass;
+        }
+
+        public ItemEventHandler getHandler() {
+            return handler;
         }
     }
 }

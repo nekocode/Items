@@ -8,31 +8,31 @@ import android.view.ViewGroup;
 import android.widget.TextView;
 
 import cn.nekocode.itempool.Item;
-import cn.nekocode.itempool.ItemEventHandler;
 
-/**
- * Created by nekocode on 16/8/17.
- */
-public class TestItem2 extends Item<Header> {
-    public static final int CLICK_TEXT = 1;
-    TextView textView;
+public class TestItem2 extends Item<Header> implements View.OnClickListener {
+    public static final int EVENT_TEXT_CLICK = 1;
+
+    private TextView textView;
+
 
     @NonNull
     @Override
     public View onCreateItemView(@NonNull LayoutInflater inflater, @NonNull ViewGroup parent) {
-        View itemView = inflater.inflate(R.layout.item_test2, parent, false);
+        final View itemView = inflater.inflate(R.layout.item_test2, parent, false);
         textView = (TextView) itemView.findViewById(R.id.textView);
+        textView.setOnClickListener(this);
         return itemView;
     }
 
     @Override
-    public void onBindItem(@NonNull final RecyclerView.ViewHolder holder, @NonNull Header header, final ItemEventHandler eventHandler) {
+    public void onBindItem(@NonNull final RecyclerView.ViewHolder holder, @NonNull Header header) {
         textView.setText("HEADER");
-        textView.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                eventHandler.onEvent(TestItem2.class, event(CLICK_TEXT, null));
-            }
-        });
+    }
+
+    @Override
+    public void onClick(View v) {
+        if (v == textView) {
+            event(EVENT_TEXT_CLICK, null);
+        }
     }
 }

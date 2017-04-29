@@ -24,18 +24,18 @@ Firstly, create a new `Item` (It's a bit similar to the `ViewHolder`). Override 
 
 ```java
 public class TestItem extends Item<String> {
-    TextView textView;
+    private TextView textView;
 
     @NonNull
     @Override
     public View onCreateItemView(@NonNull LayoutInflater inflater, @NonNull ViewGroup parent) {
-        View itemView = inflater.inflate(R.layout.item_test, parent, false);
+        final View itemView = inflater.inflate(R.layout.item_test, parent, false);
         textView = (TextView) itemView.findViewById(R.id.textView);
         return itemView;
     }
 
     @Override
-    public void onBindItem(@NonNull final RecyclerView.ViewHolder holder, @NonNull String s, ItemEventHandler eventHandler) {
+    public void onBindItem(@NonNull final RecyclerView.ViewHolder holder, @NonNull String s) {
         textView.setText(s);
     }
 }
@@ -44,75 +44,76 @@ public class TestItem extends Item<String> {
 And then obtain an `ItemPool` instance. It extends the `ArrayList<Object>` so you can add any data object to it. And for telling the itempool which `Item` will show in the recyclerview, you need to add classes of items.
 
 ```java
-ItemPool items = new ItemPool();
-items.addType(TestItem.class);
-items.addType(TestItem2.class);
+ItemPool itemPool = new ItemPool();
+itemPool.addType(TestItem.class);
+itemPool.addType(TestItem2.class);
 
-items.add(new ItemData());
-items.add("A");
-items.add("B");
+itemPool.add(new ItemData());
+itemPool.add("A");
+itemPool.add("B");
 ```
 
-Attach this itempool to the target recyclerview.
+One itempool can only attach to one recyclerview.
 
 ```java
-items.attachTo(recyclerView);
+itemPool.attachTo(recyclerView);
 ```
 
-It just like a mixture of data list and adapter because it also has the `notifyXXX()` methods for refreshing the recyclerview.
+The itempool just like a mixture of data list and adapter because it has the `notifyXXX()` methods for refreshing the recyclerview.
 
 ```java
-items.notifyDataSetChanged();
+itemPool.notifyDataSetChanged();
 ```
 
 **That's all! You don't need create `Adapter` any more! And every `Item` you create can be reused in any new recyclerview!**
 
 ### Handle view event
 
-If you want to handle the item's view events. You can set an `ItemEventHandler` for the itempool:
+If you want to handle the item's view events. You can set an `ItemEventHandler` for a `Item`:
 
 ```java
-items.onEvent(new ItemEventHandler() {
+itemPool.onEvent(TestItem2.class, new ItemEventHandler() {
     @Override
     public void onEvent(@NonNull Class<? extends Item> clazz, @NonNull ItemEvent event) {
-        if (clazz.equals(TestItem.class)) {
-            switch (event.action) {
-                case ItemEvent.ITEM_CLICK:
-                    // Handler the event
-                    break;
-            }
+        switch (event.getAction()) {
+            case Item.EVENT_ITEM_CLICK:
+                Toast.makeText(MainActivity.this,
+                        "You just clicked the header.", Toast.LENGTH_SHORT).show();
+                break;
 
-        } else if (clazz.equals(TestItem2.class)) {
-            switch (event.action) {
-                case ItemEvent.ITEM_CLICK:
-                    // Handler the event
-                    break;
-
-                case TestItem2.CLICK_TEXT:
-                    // Handler the event
-                    break;
-            }
+            case TestItem2.EVENT_TEXT_CLICK:
+                Toast.makeText(MainActivity.this,
+                        "You just clicked the TextView.", Toast.LENGTH_SHORT).show();
+                break;
+        }
     }
 });
 ```
 
-It will auto trigger the `ItemEvent.ITEM_CLICK` and `ItemEvent.ITEM_LONGCLICK` events internally. But you need to manually trigger other view events that you want to handle. For example:
+It will trigger the `ItemEvent.ITEM_CLICK` events automatically. But you need to manually trigger other view events that you want to handle. For example:
 
 ```java
-public class TestItem2 extends Item<Header> {
-    public static final int CLICK_TEXT = 1;
-    TextView textView;
+public class TestItem2 extends Item<Header> implements View.OnClickListener {
+    public static final int EVENT_TEXT_CLICK = 1;
 
-    // ...
+    private TextView textView;
+
+    // ,,,
+
+    @NonNull
+    @Override
+    public View onCreateItemView(@NonNull LayoutInflater inflater, @NonNull ViewGroup parent) {
+        final View itemView = inflater.inflate(R.layout.item_test2, parent, false);
+        textView = (TextView) itemView.findViewById(R.id.textView);
+        textView.setOnClickListener(this);
+        return itemView;
+    }
 
     @Override
-    public void onBindItem(@NonNull final RecyclerView.ViewHolder holder, @NonNull Header header, final ItemEventHandler eventHandler) {
-        textView.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                eventHandler.onEvent(TestItem2.class, event(CLICK_TEXT, null));
-            }
-        });
+    public void onClick(View v) {
+        if (v == textView) {
+            event(EVENT_TEXT_CLICK, null);
+        }
     }
 }
 ```

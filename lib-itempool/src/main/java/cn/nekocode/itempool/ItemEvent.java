@@ -1,5 +1,5 @@
 /*
- * Copyright 2016 nekocode
+ * Copyright 2016 nekocode (nekocode.cn@gmail.com)
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,19 +18,28 @@ package cn.nekocode.itempool;
 import android.support.v7.widget.RecyclerView;
 
 /**
- * Created by nekocode on 16/8/17.
+ * @author nekocode (nekocode.cn@gmail.com)
  */
 public class ItemEvent {
-    public static final int ITEM_CLICK = -1201;
-    public static final int ITEM_LONGCLICK = -1202;
-
-    public int action;
-    public Object data;
-    public RecyclerView.ViewHolder holder;
+    private int action;
+    private Object data;
+    private RecyclerView.ViewHolder holder;
 
     public ItemEvent(int action, Object data, RecyclerView.ViewHolder holder) {
         this.action = action;
         this.data = data;
         this.holder = holder;
+    }
+
+    public int getAction() {
+        return action;
+    }
+
+    public Object getData() {
+        return data;
+    }
+
+    public RecyclerView.ViewHolder getHolder() {
+        return holder;
     }
 }

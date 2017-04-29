@@ -8,24 +8,20 @@ import android.view.ViewGroup;
 import android.widget.TextView;
 
 import cn.nekocode.itempool.Item;
-import cn.nekocode.itempool.ItemEventHandler;
 
-/**
- * Created by nekocode on 16/8/17.
- */
 public class TestItem extends Item<String> {
-    TextView textView;
+    private TextView textView;
 
     @NonNull
     @Override
     public View onCreateItemView(@NonNull LayoutInflater inflater, @NonNull ViewGroup parent) {
-        View itemView = inflater.inflate(R.layout.item_test, parent, false);
+        final View itemView = inflater.inflate(R.layout.item_test, parent, false);
         textView = (TextView) itemView.findViewById(R.id.textView);
         return itemView;
     }
 
     @Override
-    public void onBindItem(@NonNull final RecyclerView.ViewHolder holder, @NonNull String s, ItemEventHandler eventHandler) {
+    public void onBindItem(@NonNull final RecyclerView.ViewHolder holder, @NonNull String s) {
         textView.setText(s);
     }
 }

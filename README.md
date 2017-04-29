@@ -18,6 +18,15 @@ dependencies {
 }
 ```
 
+## Comparison
+
+|     | ItemPool | Adapter |
+| :-- | :------: | :-----: |
+| Write `Adapter`’s boilerplate code | No | Yes |
+| Maintain an extra data list | No | Yes |
+| Reuse item view in other RecyclerView | Very easy | Difficult |
+| Handle view events | Easy | Difficult |
+
 ## Usage
 
 Firstly, create a new `Item` (It's a bit similar to the `ViewHolder`). Override the `onCreateItemView()` method to create the view for this item. And override the `onBindItem()` method for binding the corresponding type (the generic type of the class) of data to the item view.

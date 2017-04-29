@@ -78,7 +78,7 @@ public abstract class Item<T> {
 
     public void event(int action, Object data) {
         if (eventHandler != null) {
-            eventHandler.onEvent(Item.this.getClass(), new ItemEvent(action, data, holder));
+            eventHandler.onEvent(new ItemEvent(action, data, this));
         }
     }
 

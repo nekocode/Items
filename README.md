@@ -48,7 +48,7 @@ ItemPool itemPool = new ItemPool();
 itemPool.addType(TestItem.class);
 itemPool.addType(TestItem2.class);
 
-itemPool.add(new ItemData());
+itemPool.add(new Header());
 itemPool.add("A");
 itemPool.add("B");
 ```
@@ -74,7 +74,7 @@ If you want to handle the item's view events. You can set an `ItemEventHandler` 
 ```java
 itemPool.onEvent(TestItem2.class, new ItemEventHandler() {
     @Override
-    public void onEvent(@NonNull Class<? extends Item> clazz, @NonNull ItemEvent event) {
+    public void onEvent(@NonNull ItemEvent event) {
         switch (event.getAction()) {
             case Item.EVENT_ITEM_CLICK:
                 Toast.makeText(MainActivity.this,

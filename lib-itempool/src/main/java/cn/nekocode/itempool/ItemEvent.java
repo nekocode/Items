@@ -15,20 +15,18 @@
  */
 package cn.nekocode.itempool;
 
-import android.support.v7.widget.RecyclerView;
-
 /**
  * @author nekocode (nekocode.cn@gmail.com)
  */
 public class ItemEvent {
     private int action;
     private Object data;
-    private RecyclerView.ViewHolder holder;
+    private Item item;
 
-    public ItemEvent(int action, Object data, RecyclerView.ViewHolder holder) {
+    public ItemEvent(int action, Object data, Item item) {
         this.action = action;
         this.data = data;
-        this.holder = holder;
+        this.item = item;
     }
 
     public int getAction() {
@@ -39,7 +37,7 @@ public class ItemEvent {
         return data;
     }
 
-    public RecyclerView.ViewHolder getHolder() {
-        return holder;
+    public Item getItem() {
+        return item;
     }
 }

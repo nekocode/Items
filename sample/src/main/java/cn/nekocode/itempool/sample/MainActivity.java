@@ -41,7 +41,7 @@ public class MainActivity extends AppCompatActivity {
 
         itemPool.onEvent(TestItem.class, new ItemEventHandler() {
             @Override
-            public void onEvent(@NonNull Class<? extends Item> clazz, @NonNull ItemEvent event) {
+            public void onEvent(@NonNull ItemEvent event) {
                 switch (event.getAction()) {
                     case Item.EVENT_ITEM_CLICK:
                         Toast.makeText(MainActivity.this,
@@ -53,7 +53,7 @@ public class MainActivity extends AppCompatActivity {
 
         itemPool.onEvent(TestItem2.class, new ItemEventHandler() {
             @Override
-            public void onEvent(@NonNull Class<? extends Item> clazz, @NonNull ItemEvent event) {
+            public void onEvent(@NonNull ItemEvent event) {
                 switch (event.getAction()) {
                     case Item.EVENT_ITEM_CLICK:
                         Toast.makeText(MainActivity.this,

@@ -22,7 +22,5 @@ import android.support.annotation.NonNull;
  */
 public interface ItemEventHandler {
 
-    void onEvent(
-            @NonNull Class<? extends Item> clazz,
-            @NonNull ItemEvent event);
+    void onEvent(@NonNull ItemEvent event);
 }

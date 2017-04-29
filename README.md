@@ -23,7 +23,7 @@ dependencies {
 Firstly, create a new `Item` (It's a bit similar to the `ViewHolder`). Override the `onCreateItemView()` method to create the view for this item. And override the `onBindItem()` method for binding the corresponding type (the generic type of the class) of data to the item view.
 
 ```java
-public class TestItem extends Item<String> {
+public class TextItem extends Item<String> {
     private TextView textView;
 
     @NonNull
@@ -45,8 +45,8 @@ And then obtain an `ItemPool` instance. It extends the `ArrayList<Object>` so yo
 
 ```java
 ItemPool itemPool = new ItemPool();
-itemPool.addType(TestItem.class);
-itemPool.addType(TestItem2.class);
+itemPool.addType(HeaderItem.class);
+itemPool.addType(TextItem.class);
 
 itemPool.add(new Header());
 itemPool.add("A");
@@ -72,7 +72,7 @@ itemPool.notifyDataSetChanged();
 If you want to handle the item's view events. You can set an `ItemEventHandler` for a `Item`:
 
 ```java
-itemPool.onEvent(TestItem2.class, new ItemEventHandler() {
+itemPool.onEvent(HeaderItem.class, new ItemEventHandler() {
     @Override
     public void onEvent(@NonNull ItemEvent event) {
         switch (event.getAction()) {
@@ -81,7 +81,7 @@ itemPool.onEvent(TestItem2.class, new ItemEventHandler() {
                         "You just clicked the header.", Toast.LENGTH_SHORT).show();
                 break;
 
-            case TestItem2.EVENT_TEXT_CLICK:
+            case HeaderItem.EVENT_TEXT_CLICK:
                 Toast.makeText(MainActivity.this,
                         "You just clicked the TextView.", Toast.LENGTH_SHORT).show();
                 break;
@@ -93,7 +93,7 @@ itemPool.onEvent(TestItem2.class, new ItemEventHandler() {
 It will trigger the `ItemEvent.ITEM_CLICK` events automatically. But you need to manually trigger other view events that you want to handle. For example:
 
 ```java
-public class TestItem2 extends Item<Header> implements View.OnClickListener {
+public class HeaderItem extends Item<Header> implements View.OnClickListener {
     public static final int EVENT_TEXT_CLICK = 1;
 
     private TextView textView;

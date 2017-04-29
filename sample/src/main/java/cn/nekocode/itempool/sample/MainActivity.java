@@ -25,8 +25,8 @@ public class MainActivity extends AppCompatActivity {
         recyclerView.setLayoutManager(new LinearLayoutManager(this));
 
         final ItemPool itemPool = new ItemPool();
-        itemPool.addType(TestItem.class);
-        itemPool.addType(TestItem2.class);
+        itemPool.addType(HeaderItem.class);
+        itemPool.addType(TextItem.class);
 
         itemPool.add(new Header());
         itemPool.add("A");
@@ -39,7 +39,7 @@ public class MainActivity extends AppCompatActivity {
 
         itemPool.attachTo(recyclerView);
 
-        itemPool.onEvent(TestItem.class, new ItemEventHandler() {
+        itemPool.onEvent(TextItem.class, new ItemEventHandler() {
             @Override
             public void onEvent(@NonNull ItemEvent event) {
                 switch (event.getAction()) {
@@ -51,7 +51,7 @@ public class MainActivity extends AppCompatActivity {
             }
         });
 
-        itemPool.onEvent(TestItem2.class, new ItemEventHandler() {
+        itemPool.onEvent(HeaderItem.class, new ItemEventHandler() {
             @Override
             public void onEvent(@NonNull ItemEvent event) {
                 switch (event.getAction()) {
@@ -60,7 +60,7 @@ public class MainActivity extends AppCompatActivity {
                                 "You just clicked the header.", Toast.LENGTH_SHORT).show();
                         break;
 
-                    case TestItem2.EVENT_TEXT_CLICK:
+                    case HeaderItem.EVENT_TEXT_CLICK:
                         Toast.makeText(MainActivity.this,
                                 "You just clicked the TextView.", Toast.LENGTH_SHORT).show();
                         break;

@@ -8,30 +8,19 @@ import android.widget.TextView;
 
 import cn.nekocode.itempool.Item;
 
-public class TestItem2 extends Item<Header> implements View.OnClickListener {
-    public static final int EVENT_TEXT_CLICK = 1;
-
+public class TextItem extends Item<String> {
     private TextView textView;
-
 
     @NonNull
     @Override
     public View onCreateItemView(@NonNull LayoutInflater inflater, @NonNull ViewGroup parent) {
-        final View itemView = inflater.inflate(R.layout.item_test2, parent, false);
+        final View itemView = inflater.inflate(R.layout.item_test, parent, false);
         textView = (TextView) itemView.findViewById(R.id.textView);
-        textView.setOnClickListener(this);
         return itemView;
     }
 
     @Override
-    public void onBindItem(@NonNull Header header) {
-        textView.setText("HEADER");
-    }
-
-    @Override
-    public void onClick(View v) {
-        if (v == textView) {
-            event(EVENT_TEXT_CLICK, null);
-        }
+    public void onBindItem(@NonNull String s) {
+        textView.setText(s);
     }
 }

@@ -15,6 +15,9 @@
  */
 package cn.nekocode.itempool;
 
+import android.support.annotation.NonNull;
+import android.support.annotation.Nullable;
+
 /**
  * @author nekocode (nekocode.cn@gmail.com)
  */
@@ -23,21 +26,23 @@ public class ItemEvent {
     private Object data;
     private Item item;
 
-    public ItemEvent(int action, Object data, Item item) {
+    public ItemEvent(@NonNull Item item, int action, @Nullable Object data) {
         this.action = action;
         this.data = data;
         this.item = item;
+    }
+
+    @NonNull
+    public Item getItem() {
+        return item;
     }
 
     public int getAction() {
         return action;
     }
 
+    @Nullable
     public Object getData() {
         return data;
-    }
-
-    public Item getItem() {
-        return item;
     }
 }

@@ -24,7 +24,7 @@ public class HeaderItem extends Item<Header> implements View.OnClickListener {
     }
 
     @Override
-    public void onBindItem(@NonNull Header header) {
+    public void onBindData(@NonNull Header header) {
         textView.setText("HEADER");
     }
 

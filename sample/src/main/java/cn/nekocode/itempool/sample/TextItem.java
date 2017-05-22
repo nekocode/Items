@@ -20,7 +20,7 @@ public class TextItem extends Item<String> {
     }
 
     @Override
-    public void onBindItem(@NonNull String s) {
+    public void onBindData(@NonNull String s) {
         textView.setText(s);
     }
 }

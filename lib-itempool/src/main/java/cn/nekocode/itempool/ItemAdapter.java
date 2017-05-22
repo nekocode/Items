@@ -40,7 +40,7 @@ class ItemAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
     public void onBindViewHolder(final RecyclerView.ViewHolder holder, int position) {
         final Object data = itemPool.get(position);
         final Item item = ((Item.ViewHolder) holder).item;
-        item.onBindData(data);
+        item._onBindData(data);
     }
 
     @Override

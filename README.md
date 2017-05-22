@@ -29,7 +29,7 @@ dependencies {
 
 ## Usage
 
-Firstly, create a new `Item` (It's a bit similar to the `ViewHolder`). Override the `onCreateItemView()` method to create the view for this item. And override the `onBindItem()` method for binding the corresponding type (the generic type of the class) of data to the item view.
+Firstly, create a new `Item` (It's a bit similar to the `ViewHolder`). Override the `onCreateItemView()` method to create the view for this item. And override the `onBindData()` method for binding the corresponding type (the generic type of the class) of data to the item view.
 
 ```java
 public class TextItem extends Item<String> {
@@ -44,7 +44,7 @@ public class TextItem extends Item<String> {
     }
 
     @Override
-    public void onBindItem(@NonNull String s) {
+    public void onBindData(@NonNull String s) {
         textView.setText(s);
     }
 }
@@ -62,10 +62,10 @@ itemPool.add("A");
 itemPool.add("B");
 ```
 
-One itempool can only attach to one recyclerview.
+Set the internal adapter of the itempool to the recyclerview.
 
 ```java
-itemPool.attachTo(recyclerView);
+recyclerView.setAdapter(itemPool.getAdapter());
 ```
 
 The itempool just like a mixture of data list and adapter because it has the `notifyXXX()` methods for refreshing the recyclerview.

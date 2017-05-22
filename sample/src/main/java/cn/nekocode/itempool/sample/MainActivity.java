@@ -37,7 +37,7 @@ public class MainActivity extends AppCompatActivity {
         itemPool.add("F");
         itemPool.add("G");
 
-        itemPool.attachTo(recyclerView);
+        recyclerView.setAdapter(itemPool.getAdapter());
 
         itemPool.onEvent(TextItem.class, new ItemEventHandler() {
             @Override

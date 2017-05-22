@@ -44,17 +44,13 @@ public final class ItemPool extends ArrayList<Object> {
         final ItemType type = new ItemType(itemClass);
         mapOfType.put(dataClass, type);
         mapOfDataClass.put(itemClass, dataClass);
-        mapOfItemClass.put(type.TYPE_ID, itemClass);
+        mapOfItemClass.put(type.getTypeId(), itemClass);
     }
 
     public void onEvent(@NonNull Class<? extends Item> itemClass, @Nullable ItemEventHandler handler) {
         final Class dataClass = mapOfDataClass.get(itemClass);
         final ItemType itemType = mapOfType.get(dataClass);
         itemType.handler = handler;
-    }
-
-    public void attachTo(@NonNull RecyclerView recyclerView) {
-        recyclerView.setAdapter(internalAdapter);
     }
 
     @NonNull
@@ -99,9 +95,9 @@ public final class ItemPool extends ArrayList<Object> {
         final Class dataClass = get(index).getClass();
         final ItemType type = mapOfType.get(dataClass);
         if (type == null) {
-            throw new RuntimeException("No item set for the data type: " + dataClass.getSimpleName());
+            throw new RuntimeException("Unregistered data type: " + dataClass.getSimpleName());
         }
-        return type.TYPE_ID;
+        return type.getTypeId();
     }
 
     Class<? extends Item> getItemClass(int typeId) {
@@ -114,17 +110,17 @@ public final class ItemPool extends ArrayList<Object> {
     }
 
     static class ItemType {
-        private final int TYPE_ID;
+        private final int typeId;
         private final Class<? extends Item> itemClass;
         private ItemEventHandler handler;
 
         private ItemType(Class<? extends Item> itemClass) {
-            TYPE_ID = ID_COUNTER.getAndIncrement();
+            typeId = ID_COUNTER.getAndIncrement();
             this.itemClass = itemClass;
         }
 
-        public int getTYPE_ID() {
-            return TYPE_ID;
+        public int getTypeId() {
+            return typeId;
         }
 
         public Class<? extends Item> getItemClass() {

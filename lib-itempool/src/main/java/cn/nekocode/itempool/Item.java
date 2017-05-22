@@ -16,6 +16,7 @@
 package cn.nekocode.itempool;
 
 import android.support.annotation.NonNull;
+import android.support.annotation.Nullable;
 import android.support.v7.widget.RecyclerView;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -52,9 +53,9 @@ public abstract class Item<T> {
         return holder;
     }
 
-    void onBindData(T data) {
+    void _onBindData(T data) {
         this.data = data;
-        onBindItem(data);
+        onBindData(data);
     }
 
     @NonNull
@@ -62,23 +63,26 @@ public abstract class Item<T> {
             @NonNull LayoutInflater inflater,
             @NonNull ViewGroup parent);
 
-    public abstract void onBindItem(@NonNull final T data);
+    public abstract void onBindData(@NonNull final T data);
 
+    @NonNull
     public RecyclerView.ViewHolder getViewHolder() {
         return holder;
     }
 
+    @NonNull
     public RecyclerView.Adapter<RecyclerView.ViewHolder> getAdapter() {
         return adapter;
     }
 
+    @NonNull
     public T getData() {
         return data;
     }
 
-    public void event(int action, Object data) {
+    public void event(int action, @Nullable Object data) {
         if (eventHandler != null) {
-            eventHandler.onEvent(new ItemEvent(action, data, this));
+            eventHandler.onEvent(new ItemEvent(this, action, data));
         }
     }
 

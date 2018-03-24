@@ -27,6 +27,7 @@ import javax.lang.model.type.TypeMirror;
 
 import cn.nekocode.items.annotation.Items;
 import cn.nekocode.items.processor.Constants;
+import cn.nekocode.items.processor.ElementException;
 import cn.nekocode.items.processor.Environment;
 
 /**
@@ -67,10 +68,8 @@ public class ItemsInfo {
                     break;
 
                 default:
-                    throw new RuntimeException(
-                            "Element: " + element.getSimpleName() +
-                                    "\n\tUnsupported adapter type [" +
-                                    adapterType.getSimpleName() +  "].");
+                    throw new ElementException(element,
+                            "Unsupported adapter type [" + adapterType.getSimpleName() +  "].");
             }
 
         } else {
@@ -114,9 +113,8 @@ public class ItemsInfo {
                     itemViewInfo = new ItemViewInfo(true, selectorElement);
 
                 } else {
-                    throw new RuntimeException(
-                            "Element: " + element.getSimpleName() +
-                                    "\n\tSelector [" + selectorElement.getSimpleName() + "] does not match data [" +
+                    throw new ElementException(element,
+                            "Selector [" + selectorElement.getSimpleName() + "] does not match data [" +
                                     dataElement.getSimpleName() + "].");
                 }
 
@@ -129,17 +127,14 @@ public class ItemsInfo {
                         itemViewInfo = new ItemViewInfo(false, viewElement);
 
                     } else {
-                        throw new RuntimeException(
-                                "Element: " + element.getSimpleName() +
-                                        "\n\tView [" + viewElement.getSimpleName() +
-                                        "] does not match data [" +
+                        throw new ElementException(element,
+                                "View [" + viewElement.getSimpleName() + "] does not match data [" +
                                         dataElement.getSimpleName() + "].");
                     }
 
                 } else {
-                    throw new RuntimeException(
-                            "Element: " + element.getSimpleName() +
-                                    "\n\tDoes not declare view for data [" +
+                    throw new ElementException(element,
+                            "Element: " + element.getSimpleName() + "Does not declare view for data [" +
                                     dataElement.getSimpleName() + "].");
                 }
             }

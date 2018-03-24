@@ -23,6 +23,7 @@ import javax.lang.model.type.TypeMirror;
 
 import cn.nekocode.items.annotation.ItemViewId;
 import cn.nekocode.items.processor.Constants;
+import cn.nekocode.items.processor.ElementException;
 import cn.nekocode.items.processor.Environment;
 
 /**
@@ -41,9 +42,8 @@ public class ItemViewIdInfo {
         final TypeElement targetClassElement = Environment.asTypeElement(value);
 
         if (!isDataTypeMatched(targetClassElement, selectorElement)) {
-            throw new RuntimeException(
-                    "Element: " + selectorElement.getSimpleName() +
-                            "\n\tThe data type of selector does not match the inner itemview [" +
+            throw new ElementException(selectorElement,
+                    "The data type of selector does not match the inner itemview [" +
                             targetClassElement.getSimpleName() + "].\n");
         }
 

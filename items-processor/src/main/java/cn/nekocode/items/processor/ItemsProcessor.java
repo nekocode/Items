@@ -112,9 +112,8 @@ public class ItemsProcessor extends AbstractProcessor {
         ItemsInfo itemsInfo;
         for (Element element : env.getElementsAnnotatedWith(Items.class)) {
             if (element.getKind() != ElementKind.INTERFACE) {
-                throw new RuntimeException(
-                        "Element: " + element.getSimpleName() +
-                                "\n\t@Items can only be applied to interface.");
+                throw new ElementException(element,
+                        "@Items can only be applied to interface.");
             }
 
             itemsInfo = ItemsInfo.parse((TypeElement) element);
@@ -137,30 +136,22 @@ public class ItemsProcessor extends AbstractProcessor {
             ownerClassElement = (TypeElement) element.getEnclosingElement();
 
             if (!element.getModifiers().contains(Modifier.ABSTRACT)) {
-                throw new RuntimeException(
-                        "Element: " + ownerClassElement.getSimpleName() +
-                                "\n\tThe method [" +
-                                element.getSimpleName() +  "] must be abstract.");
+                throw new ElementException(ownerClassElement,
+                        "The method [" + element.getSimpleName() +  "] must be abstract.");
             }
             if (!((ExecutableElement) element).getReturnType().getKind().equals(TypeKind.INT)) {
-                throw new RuntimeException(
-                        "Element: " + ownerClassElement.getSimpleName() +
-                                "\n\tThe method [" +
-                                element.getSimpleName() +  "] must return int value.");
+                throw new ElementException(ownerClassElement,
+                        "The method [" + element.getSimpleName() +  "] must return int value.");
             }
             if (((ExecutableElement) element).getParameters().size() != 0) {
-                throw new RuntimeException(
-                        "Element: " + ownerClassElement.getSimpleName() +
-                                "\n\tThe method [" +
-                                element.getSimpleName() +  "] must not receive parameters.");
+                throw new ElementException(ownerClassElement,
+                        "The method [" + element.getSimpleName() +  "] must has no parameters.");
             }
             if (!Environment.isRawTypeAssignable(
                     ownerClassElement.asType(), selectorAncestorElement.asType())) {
 
-                throw new RuntimeException(
-                        "Element: " + ownerClassElement.getSimpleName() +
-                                "\n\tMust implement interface [" +
-                                selectorAncestorElement.getSimpleName() +  "].");
+                throw new ElementException(ownerClassElement,
+                        "Must implement interface [" + selectorAncestorElement.getSimpleName() +  "].");
             }
 
             boolean hasOverride = false;
@@ -176,10 +167,8 @@ public class ItemsProcessor extends AbstractProcessor {
                 }
             }
             if (!hasOverride) {
-                throw new RuntimeException(
-                        "Element: " + ownerClassElement.getSimpleName() +
-                                "\n\tMust override method [" +
-                                selectMethodElement.getSimpleName() +  "].");
+                throw new ElementException(ownerClassElement,
+                        "Must override method [" + selectMethodElement.getSimpleName() +  "].");
             }
 
             methodElements = (ArrayList<ItemViewIdInfo>) map.get(ownerClassElement);

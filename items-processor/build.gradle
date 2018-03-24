@@ -1,0 +1,9 @@
+apply plugin: 'java-library'
+
+dependencies {
+    compile project(':items')
+    compile 'com.squareup:javapoet:1.10.0'
+}
+
+sourceCompatibility = "1.7"
+targetCompatibility = "1.7"

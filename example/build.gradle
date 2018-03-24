@@ -1,0 +1,28 @@
+apply plugin: 'com.android.application'
+
+android {
+    compileSdkVersion COMPILE_SDK_VERSION.toInteger()
+
+    defaultConfig {
+        applicationId "cn.nekocode.itempool.sample"
+        minSdkVersion 14
+        targetSdkVersion 26
+        versionCode 1
+        versionName "1.0"
+    }
+    buildTypes {
+        release {
+            minifyEnabled false
+            proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
+        }
+    }
+}
+
+dependencies {
+    implementation fileTree(dir: 'libs', include: ['*.jar'])
+    implementation project(':items')
+    annotationProcessor project(':items-processor')
+
+    implementation "com.android.support:appcompat-v7:$SUPPORT_LIBS_VERSION"
+    implementation "com.android.support:recyclerview-v7:$SUPPORT_LIBS_VERSION"
+}

@@ -1,0 +1,85 @@
+import com.android.build.gradle.internal.dependency.ExtractAarTransform
+import com.android.build.gradle.internal.dependency.AarTransform
+import com.android.build.gradle.internal.publishing.AndroidArtifacts
+import com.android.build.gradle.internal.publishing.AndroidArtifacts.ArtifactType
+import com.google.common.collect.ImmutableList
+import org.gradle.api.artifacts.transform.ArtifactTransform
+import org.gradle.api.artifacts.type.ArtifactTypeDefinition
+
+import static org.gradle.api.internal.artifacts.ArtifactAttributes.ARTIFACT_FORMAT
+
+
+apply plugin: 'java-library'
+apply plugin: 'com.github.dcendents.android-maven'
+
+group='com.github.nekocode'
+
+
+configurations {
+    aar {
+        attributes {
+            attribute(ARTIFACT_FORMAT, ArtifactTypeDefinition.JAR_TYPE)
+        }
+
+        // Add the aar inner jars to the compileClasspath
+        sourceSets.main.compileClasspath += it
+
+        // Put our custom dependencies onto IDEA's PROVIDED scope
+        apply plugin: 'idea'
+        idea.module.scopes.PROVIDED.plus += [it]
+    }
+}
+
+dependencies {
+    def explodedAarType = ArtifactType.EXPLODED_AAR.getType()
+    registerTransform {
+        from.attribute(ARTIFACT_FORMAT, AndroidArtifacts.TYPE_AAR)
+        to.attribute(ARTIFACT_FORMAT, explodedAarType)
+        artifactTransform(ExtractAarTransform)
+    }
+
+    registerTransform {
+        from.attribute(ARTIFACT_FORMAT, explodedAarType)
+        to.attribute(ARTIFACT_FORMAT, "classes.jar")
+        artifactTransform(AarTransform) { params(ArtifactType.JAR) }
+    }
+
+    registerTransform {
+        from.attribute(ARTIFACT_FORMAT, "classes.jar")
+        to.attribute(ARTIFACT_FORMAT, ArtifactTypeDefinition.JAR_TYPE)
+        artifactTransform(ClassesJarArtifactTransform)
+    }
+
+
+    /*
+      Android Jar
+     */
+    def targetSdkVersion = 26
+    Properties properties = new Properties()
+    properties.load(project.rootProject.file('local.properties').newDataInputStream())
+    def sdkDir = properties.getProperty('sdk.dir')
+
+    compileOnly files("${sdkDir}/platforms/android-${targetSdkVersion}/android.jar")
+
+
+    /*
+      Aars
+     */
+    aar "com.android.support:recyclerview-v7:$SUPPORT_LIBS_VERSION"
+}
+
+
+/**
+ * An ArtifactTransform for renaming the classes.jar
+ */
+class ClassesJarArtifactTransform extends ArtifactTransform {
+
+    @Override
+    List<File> transform(File file) {
+        final String[] names = file.getPath().split("/")
+        final String aarName = names[names.length - 4]
+        final File renamedJar = new File(getOutputDirectory(), aarName + ".jar")
+        renamedJar << file.bytes
+        return ImmutableList.of(renamedJar)
+    }
+}

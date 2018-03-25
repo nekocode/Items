@@ -12,8 +12,6 @@ import static org.gradle.api.internal.artifacts.ArtifactAttributes.ARTIFACT_FORM
 apply plugin: 'java-library'
 apply plugin: 'com.github.dcendents.android-maven'
 
-group='com.github.nekocode'
-
 
 configurations {
     aar {
@@ -82,4 +80,14 @@ class ClassesJarArtifactTransform extends ArtifactTransform {
         renamedJar << file.bytes
         return ImmutableList.of(renamedJar)
     }
+}
+
+// build a jar with source files
+task sourcesJar(type: Jar) {
+    from android.sourceSets.main.java.srcDirs
+    classifier = 'sources'
+}
+
+artifacts {
+    archives sourcesJar
 }

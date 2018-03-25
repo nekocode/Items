@@ -1,4 +1,6 @@
 apply plugin: 'java-library'
+apply plugin: 'com.github.dcendents.android-maven'
+
 
 dependencies {
     compile project(':items')
@@ -7,3 +9,13 @@ dependencies {
 
 sourceCompatibility = "1.7"
 targetCompatibility = "1.7"
+
+// build a jar with source files
+task sourcesJar(type: Jar) {
+    from android.sourceSets.main.java.srcDirs
+    classifier = 'sources'
+}
+
+artifacts {
+    archives sourcesJar
+}

@@ -16,6 +16,10 @@ allprojects {
     }
 }
 
+subprojects {
+    group = 'com.github.nekocode'
+}
+
 task clean(type: Delete) {
     delete rootProject.buildDir
 }

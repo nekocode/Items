@@ -12,7 +12,7 @@ targetCompatibility = "1.7"
 
 // build a jar with source files
 task sourcesJar(type: Jar) {
-    from android.sourceSets.main.java.srcDirs
+    from sourceSets.main.java.srcDirs
     classifier = 'sources'
 }
 

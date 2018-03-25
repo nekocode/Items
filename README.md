@@ -1,0 +1,1 @@
+This library uses [annotation processor](https://en.wikipedia.org/wiki/Java_annotation#Processing) to help you auto generate data-view-binding adapters for android list views (such as the RecyclerView).

@@ -4,7 +4,7 @@ This library uses [annotation processor](https://en.wikipedia.org/wiki/Java_anno
 
 In fact, it abstracts the adapter as a type matcher for data and item-view. It can display different item-views based on a list of multi-type data. There are already some libraries doing this kind of thing. Such as [MultiType](https://github.com/drakeet/MultiType), [ItemPool](https://github.com/nekocode/Items/tree/item-pool) (Ancestor of this library).
 
-However, they all have some deficiencies. Inefficient type matching, inconvenient event handling, and you can only use them on the RecyclerView (not expandable enough). So I use the annotation processor technology to redesign the ItemPool library, and finially built this new library.
+But however, they all have some deficiencies. Inefficient type matching, inconvenient event handling, and you can only use them on the RecyclerView (not expandable enough). So I use the annotation processor technology to redesign the ItemPool library, and finially built this new library.
 
 ## How to use
 
@@ -44,15 +44,16 @@ The second step is to create a new empty interface. Annotate it with `@Items` to
 public interface TestItems {}
 ```
 
-Now try to rebuild module in IDE or manually excute the below command in terminal.
-
-```sh
-./gradlew :example:clean :example:compileDebugJavaWithJavac
-```
-
-The processor will generate an adapter class into the same package of your empty interface. The name is `Your empty interface's name` + `Adapter`. For example, according to the above `TestItems`, the processor will name the generated adapter class `TestItemsAdapter`.
+Now try to rebuild your module in IDE. The processor will generate an adapter class into the same package of your empty interface. The name is `Your empty interface's name` + `Adapter`. For example, according to the above `TestItems`, the processor will name the generated adapter class `TestItemsAdapter`.
 
 [Here](generated_adapter_example/TestItemsAdapter.java) is an example of the generated adapter class file.
+
+Note that for the fastest type matching, all data in adapter's data collection must to be wrapped with [`ItemData`](items/src/main/java/cn/nekocode/items/data/ItemData.java). But don't worry, the generated adapter have methods to auto wrap them. Just like below:
+
+```java
+list.add(adapter.TestData(new TestData()));
+list.add(adapter.TestData2(new TestData2()));
+```
 
 ## Advanced usages
 
@@ -62,7 +63,7 @@ Event handling is very easy to use. In the ItemView, call `getEventHandler().sen
 
 ## Integrating
 
-Add jitpack repostory url to your repostory sources.
+Add jitpack repostory url to your repostory sources:
 
 ```gradle
 repositories {
@@ -70,7 +71,7 @@ repositories {
 }
 ```
 
-And then dependency them to your module.
+And then dependency them to your module:
 
 ```gradle
 dependencies {

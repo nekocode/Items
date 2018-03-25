@@ -6,6 +6,8 @@ In fact, it abstracts the adapter as a type matcher for data and item-view. It c
 
 But however, they all have some deficiencies. Inefficient type matching, inconvenient event handling, and you can only use them on the RecyclerView (not expandable enough). So I use the annotation processor technology to redesign the ItemPool library, and finially built this new library.
 
+It can auto generates ids for each data and item-view. **Then match them in comiple-time!** So it's absolutely faster than MultiType and ItemPool's workaround - compare the class types and match them in runtime.
+
 ## How to use
 
 You can see the [example](example/src/main/java/cn/nekocode/items/example/test) to learn most of the usages.

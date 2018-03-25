@@ -6,7 +6,7 @@ In fact, it abstracts the adapter as a type matcher for data and item-view. It c
 
 ## How to use
 
-You can see the [example](example/src/main/java/cn/nekocode/items/example/test) to learn most of the usage.
+You can see the [example](example/src/main/java/cn/nekocode/items/example/test) to learn most of the usages.
 
 Usually, we only need three steps. Firstly, we declare some ItemViews for represent the data. This library provides [RecyclerViewItemView](items/src/main/java/cn/nekocode/items/view/RecyclerViewItemView.java) for the RecyclerView. Override the `onCreateItemView` method to return a view at the time of item-view's creating. And override the `onBindData` method to refresh the view based on the new data binding to it.
 
@@ -51,3 +51,9 @@ Now try to rebuild module in IDE or manually excute the below command in termina
 The processor will generate an adapter class into the same package of your empty interface. The name is `Your empty interface's name` + `Adapter`. For example, according to the above `TestItems`, the processor will name the generated adapter class `TestItemsAdapter`.
 
 [Here](generated_adapter_example/TestItemsAdapter.java) is an example of the generated adapter class file.
+
+## Advanced usages
+
+Just like the MultiType library, this library can also bind one data to multiple views. It provides an interface named [`ItemViewSelector`](items/src/main/java/cn/nekocode/items/view/ItemViewSelector.java) to select different item-view to display. You can see the example [TestItemViewSelector](example/src/main/java/cn/nekocode/items/example/test/TestItemViewSelector.java). The code tell everything.
+
+Event handling is very easy to use. In the ItemView, call `getEventHandler().sendEvent()`  ([example](example/src/main/java/cn/nekocode/items/example/test/TestItemViewB.java#L33)) to send events. And then add a listener to lisnten them by using the generated adapter's `addEventListener()` method ([example](example/src/main/java/cn/nekocode/items/example/MainActivity.java#L41-L64)).

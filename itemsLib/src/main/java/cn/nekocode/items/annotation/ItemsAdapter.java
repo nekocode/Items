@@ -16,8 +16,6 @@
 
 package cn.nekocode.items.annotation;
 
-import cn.nekocode.items.ItemView;
-
 import java.lang.annotation.Retention;
 import java.lang.annotation.Target;
 
@@ -29,6 +27,5 @@ import static java.lang.annotation.RetentionPolicy.CLASS;
  */
 @Retention(CLASS)
 @Target(TYPE)
-public @interface ViewDelegateOf {
-    Class<? extends ItemView> value();
+public @interface ItemsAdapter {
 }

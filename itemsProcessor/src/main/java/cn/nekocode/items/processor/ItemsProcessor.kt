@@ -16,19 +16,44 @@
 
 package cn.nekocode.items.processor
 
+import cn.nekocode.items.annotation.ItemsAdapter
 import javax.annotation.processing.AbstractProcessor
 import javax.annotation.processing.RoundEnvironment
+import javax.lang.model.SourceVersion
+import javax.lang.model.element.ElementKind
 import javax.lang.model.element.TypeElement
+import javax.tools.Diagnostic
 
 /**
  * @author nekocode (nekocode.cn@gmail.com)
  */
-class ItemsProcessor: AbstractProcessor() {
+class ItemsProcessor : AbstractProcessor() {
+
+    override fun getSupportedSourceVersion(): SourceVersion {
+        return SourceVersion.latestSupported()
+    }
+
+    override fun getSupportedAnnotationTypes(): MutableSet<String> {
+        return mutableSetOf(
+            ItemsAdapter::class.java.canonicalName
+        )
+    }
 
     override fun process(
         annotations: MutableSet<out TypeElement>,
-        roundEnv: RoundEnvironment): Boolean {
+        roundEnv: RoundEnvironment
+    ): Boolean {
+        for (element in roundEnv.getElementsAnnotatedWith(ItemsAdapter::class.java)) {
+            if (element.kind == ElementKind.INTERFACE) {
+                printError("The @ItemsAdapter should not annotates to interface class: ${element.simpleName}")
+                return true
+            }
+        }
 
         return true
+    }
+
+    private fun printError(msg: String) {
+        processingEnv.messager.printMessage(Diagnostic.Kind.ERROR, msg);
     }
 }

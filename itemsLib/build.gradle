@@ -1,0 +1,21 @@
+apply plugin: 'java-library'
+apply plugin: 'import-aar'
+
+dependencies {
+    /*
+      Android Jar
+     */
+    def targetSdkVersion = 26
+    Properties properties = new Properties()
+    properties.load(project.rootProject.file('local.properties').newDataInputStream())
+    def sdkDir = properties.getProperty('sdk.dir')
+
+    compileOnly files("${sdkDir}/platforms/android-${targetSdkVersion}/android.jar")
+
+
+    /*
+      Aars
+     */
+    aarCompileOnly "com.android.support:recyclerview-v7:28.0.0"
+}
+

@@ -1,1 +1,1 @@
-include ':exampleApp', ':itemsLib'
+include ':exampleApp', ':itemsLib', ':itemsProcessor'

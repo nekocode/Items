@@ -1,5 +1,5 @@
-apply plugin: 'java-library'
-apply plugin: 'import-aar'
+apply plugin: "java-library"
+apply plugin: "import-aar"
 
 dependencies {
     /*
@@ -7,8 +7,8 @@ dependencies {
      */
     def targetSdkVersion = 26
     Properties properties = new Properties()
-    properties.load(project.rootProject.file('local.properties').newDataInputStream())
-    def sdkDir = properties.getProperty('sdk.dir')
+    properties.load(project.rootProject.file("local.properties").newDataInputStream())
+    def sdkDir = properties.getProperty("sdk.dir")
 
     compileOnly files("${sdkDir}/platforms/android-${targetSdkVersion}/android.jar")
 
@@ -19,3 +19,14 @@ dependencies {
     aarCompileOnly "com.android.support:recyclerview-v7:28.0.0"
 }
 
+// build a jar with source files
+task sourcesJar(type: Jar) {
+    from sourceSets.main.java.srcDirs
+    classifier = "sources"
+}
+
+artifacts {
+    archives sourcesJar
+}
+
+group="com.github.nekocode"

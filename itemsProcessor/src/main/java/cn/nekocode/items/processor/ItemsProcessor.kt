@@ -26,6 +26,7 @@ import javax.lang.model.element.TypeElement
 import javax.tools.Diagnostic
 
 /**
+ * Debug: ./gradlew --no-daemon -Dorg.gradle.debug=true :exampleApp:clean :exampleApp:compileDebugJavaWithJavac
  * @author nekocode (nekocode.cn@gmail.com)
  */
 class ItemsProcessor : AbstractProcessor() {

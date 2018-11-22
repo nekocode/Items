@@ -18,7 +18,7 @@ package cn.nekocode.items.example;
 
 import android.support.annotation.NonNull;
 import cn.nekocode.items.ItemAdapter;
-import cn.nekocode.items.annotation.ItemsAdapter;
+import cn.nekocode.items.annotation.Adapter;
 import cn.nekocode.items.annotation.ViewDelegate;
 import cn.nekocode.items.annotation.ViewSelector;
 
@@ -27,7 +27,7 @@ import java.util.ArrayList;
 /**
  * @author nekocode (nekocode.cn@gmail.com)
  */
-@ItemsAdapter
+@Adapter
 public abstract class TestAdapter extends ItemAdapter {
     private final ArrayList list = new ArrayList();
 

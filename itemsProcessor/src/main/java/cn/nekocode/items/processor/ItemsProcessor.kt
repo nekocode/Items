@@ -16,7 +16,8 @@
 
 package cn.nekocode.items.processor
 
-import cn.nekocode.items.annotation.ItemsAdapter
+import cn.nekocode.items.ItemAdapter
+import cn.nekocode.items.annotation.Adapter
 import javax.annotation.processing.AbstractProcessor
 import javax.annotation.processing.RoundEnvironment
 import javax.lang.model.SourceVersion
@@ -35,7 +36,7 @@ class ItemsProcessor : AbstractProcessor() {
 
     override fun getSupportedAnnotationTypes(): MutableSet<String> {
         return mutableSetOf(
-            ItemsAdapter::class.java.canonicalName
+            Adapter::class.java.canonicalName
         )
     }
 
@@ -43,9 +44,19 @@ class ItemsProcessor : AbstractProcessor() {
         annotations: MutableSet<out TypeElement>,
         roundEnv: RoundEnvironment
     ): Boolean {
-        for (element in roundEnv.getElementsAnnotatedWith(ItemsAdapter::class.java)) {
+        for (element in roundEnv.getElementsAnnotatedWith(Adapter::class.java)) {
             if (element.kind == ElementKind.INTERFACE) {
-                printError("The @ItemsAdapter should not annotates to interface class: ${element.simpleName}")
+                printError("The @${Adapter::class.java.simpleName} " +
+                        "should not annotates to interface class: ${element.simpleName}")
+                return true
+            }
+            val typeElement = element as TypeElement
+            val superElement = processingEnv.typeUtils
+                .asElement(typeElement.superclass) as TypeElement
+
+            if (superElement.qualifiedName.toString() != ItemAdapter::class.java.canonicalName) {
+                printError("The adapter class should extends ${ItemAdapter::class.java.simpleName}: " +
+                        "${typeElement.qualifiedName}")
                 return true
             }
         }

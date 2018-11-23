@@ -16,8 +16,6 @@
 
 package cn.nekocode.items.processor
 
-import cn.nekocode.items.ItemAdapter
-import cn.nekocode.items.annotation.Adapter
 import com.google.testing.compile.JavaFileObjects
 import com.google.testing.compile.JavaSourcesSubjectFactory
 import org.junit.Test
@@ -34,9 +32,9 @@ class ItemsProcessorTest {
             "com.test.TestAdapter",
             """
                 package com.test;
-                import ${Adapter::class.java.canonicalName};
+                import ${Names.ADAPTER};
 
-                @${Adapter::class.java.simpleName}
+                @${Names.ADAPTER}
                 public interface TestAdapter {}
             """.trimIndent()
         )
@@ -46,8 +44,8 @@ class ItemsProcessorTest {
             .that(arrayListOf(javaFile))
             .processedWith(ItemsProcessor())
             .failsToCompile()
-            .withErrorContaining("The @${Adapter::class.java.simpleName} " +
-                    "should not annotates to interface class:")
+            .withErrorContaining("The @${Names.ADAPTER} " +
+                    "should not annotates to interface:")
     }
 
     @Test
@@ -56,9 +54,9 @@ class ItemsProcessorTest {
             "com.test.TestAdapter",
             """
                 package com.test;
-                import ${Adapter::class.java.canonicalName};
+                import ${Names.ADAPTER};
 
-                @${Adapter::class.java.simpleName}
+                @${Names.ADAPTER}
                 public class TestAdapter {}
             """.trimIndent()
         )
@@ -68,7 +66,7 @@ class ItemsProcessorTest {
             .that(arrayListOf(javaFile))
             .processedWith(ItemsProcessor())
             .failsToCompile()
-            .withErrorContaining("The adapter class should extends " +
-                    "${ItemAdapter::class.java.simpleName}:")
+            .withErrorContaining("The adapter class should extends class " +
+                    "${Names.ITEM_ADAPTER}:")
     }
 }

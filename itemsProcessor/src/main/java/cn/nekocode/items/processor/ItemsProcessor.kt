@@ -16,8 +16,6 @@
 
 package cn.nekocode.items.processor
 
-import cn.nekocode.items.ItemAdapter
-import cn.nekocode.items.annotation.Adapter
 import javax.annotation.processing.AbstractProcessor
 import javax.annotation.processing.RoundEnvironment
 import javax.lang.model.SourceVersion
@@ -36,28 +34,28 @@ class ItemsProcessor : AbstractProcessor() {
     }
 
     override fun getSupportedAnnotationTypes(): MutableSet<String> {
-        return mutableSetOf(
-            Adapter::class.java.canonicalName
-        )
+        return mutableSetOf(Names.ADAPTER)
     }
 
     override fun process(
         annotations: MutableSet<out TypeElement>,
         roundEnv: RoundEnvironment
     ): Boolean {
-        for (element in roundEnv.getElementsAnnotatedWith(Adapter::class.java)) {
-            if (element.kind == ElementKind.INTERFACE) {
-                printError("The @${Adapter::class.java.simpleName} " +
-                        "should not annotates to interface class: ${element.simpleName}")
+        val annotationElement = elements().getTypeElement(Names.ADAPTER)
+        for (annotatedElement in roundEnv.getElementsAnnotatedWith(annotationElement)) {
+            if (annotatedElement.kind == ElementKind.INTERFACE) {
+                printError("The @${Names.ADAPTER} " +
+                        "should not annotates to interface: ${annotatedElement.simpleName}")
                 return true
             }
-            val typeElement = element as TypeElement
+            val adapterElement = annotatedElement as TypeElement
             val superElement = processingEnv.typeUtils
-                .asElement(typeElement.superclass) as TypeElement
+                .asElement(adapterElement.superclass) as TypeElement
+            val itemAdapterElement = elements().getTypeElement(Names.ITEM_ADAPTER)
 
-            if (superElement.qualifiedName.toString() != ItemAdapter::class.java.canonicalName) {
-                printError("The adapter class should extends ${ItemAdapter::class.java.simpleName}: " +
-                        "${typeElement.qualifiedName}")
+            if (superElement != itemAdapterElement) {
+                printError("The adapter class should extends class ${itemAdapterElement.qualifiedName}: " +
+                        "${adapterElement.qualifiedName}")
                 return true
             }
         }
@@ -68,4 +66,6 @@ class ItemsProcessor : AbstractProcessor() {
     private fun printError(msg: String) {
         processingEnv.messager.printMessage(Diagnostic.Kind.ERROR, msg);
     }
+
+    private fun elements() = processingEnv.elementUtils
 }

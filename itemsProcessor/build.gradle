@@ -1,14 +1,19 @@
 apply plugin: "kotlin"
+apply plugin: "import-aar"
 
 dependencies {
-    implementation project(":itemsLib")
     implementation "org.jetbrains.kotlin:kotlin-stdlib-jdk8:1.3.10"
 
+    testImplementation project(":itemsLib")
     testImplementation "junit:junit:4.12"
     testImplementation "com.google.truth:truth:0.42"
     testImplementation "com.google.testing.compile:compile-testing:0.15"
     testImplementation "com.google.android:android:4.1.1.4"
+
+    aarCompileOnly "com.android.support:recyclerview-v7:27.1.1"
 }
+
+configurations.testImplementation.extendsFrom(configurations.aarCompileOnly)
 
 // build a jar with source files
 task sourcesJar(type: Jar) {

@@ -20,6 +20,7 @@ import javax.annotation.processing.AbstractProcessor
 import javax.annotation.processing.RoundEnvironment
 import javax.lang.model.SourceVersion
 import javax.lang.model.element.ElementKind
+import javax.lang.model.element.ExecutableElement
 import javax.lang.model.element.TypeElement
 import javax.tools.Diagnostic
 
@@ -43,18 +44,69 @@ class ItemsProcessor : AbstractProcessor() {
     ): Boolean {
         val annotationElement = elements().getTypeElement(Names.ADAPTER)
         for (annotatedElement in roundEnv.getElementsAnnotatedWith(annotationElement)) {
+            // Check if this element is not an interface
             if (annotatedElement.kind == ElementKind.INTERFACE) {
                 printError("The @${Names.ADAPTER} " +
                         "should not annotates to interface: ${annotatedElement.simpleName}")
                 return true
             }
+
+            // Define useful elements
             val adapterElement = annotatedElement as TypeElement
             val superElement = processingEnv.typeUtils
                 .asElement(adapterElement.superclass) as TypeElement
             val itemAdapterElement = elements().getTypeElement(Names.ITEM_ADAPTER)
 
+            // Check if the super class of this element is ItemAdapter
             if (superElement != itemAdapterElement) {
                 printError("The adapter class should extends class ${itemAdapterElement.qualifiedName}: " +
+                        "${adapterElement.qualifiedName}")
+                return true
+            }
+
+            // Get the method element of getData()
+            var foundElement: ExecutableElement? = null
+            for (element in itemAdapterElement.enclosedElements) {
+                if (element is ExecutableElement &&
+                    element.simpleName.toString() == Names.GET_DATA) {
+                    foundElement = element
+                }
+            }
+            val getDataElement = foundElement!!
+
+            // Get the getItemCount() method element
+            foundElement = null
+            for (element in elements().getTypeElement(Names.RECYCLER_VIEW_ADAPTER).enclosedElements) {
+                if (element is ExecutableElement &&
+                    element.simpleName.toString() == Names.GET_ITEM_COUNT) {
+                    foundElement = element
+                }
+            }
+            val getItemCountElement = foundElement!!
+
+            var overrideGetData = false
+            var overrideGetItemCount = false
+            for (element in adapterElement.enclosedElements) {
+                if (element !is ExecutableElement) {
+                    continue
+                }
+
+                if (!overrideGetData && element.simpleName.toString() == Names.GET_DATA) {
+                    overrideGetData = elements().overrides(
+                        element, getDataElement, adapterElement)
+                }
+                if (!overrideGetItemCount && element.simpleName.toString() == Names.GET_ITEM_COUNT) {
+                    overrideGetItemCount = elements().overrides(
+                        element, getItemCountElement, adapterElement)
+                }
+            }
+            if (!overrideGetData) {
+                printError("The adapter class should override method ${Names.GET_DATA}(): " +
+                        "${adapterElement.qualifiedName}")
+                return true
+            }
+            if (!overrideGetItemCount) {
+                printError("The adapter class should override method ${Names.GET_ITEM_COUNT}(): " +
                         "${adapterElement.qualifiedName}")
                 return true
             }

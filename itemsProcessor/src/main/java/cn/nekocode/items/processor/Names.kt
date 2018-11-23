@@ -20,7 +20,7 @@ package cn.nekocode.items.processor
  * @author nekocode (nekocode.cn@gmail.com)
  */
 object Names {
-    const val RECYCLER_VIEW = "android.support.v7.widget.RecyclerView"
+    const val RECYCLER_VIEW_ADAPTER = "android.support.v7.widget.RecyclerView.Adapter"
     const val ADAPTER = "cn.nekocode.items.annotation.Adapter"
     const val ITEM_ADAPTER = "cn.nekocode.items.ItemAdapter"
     const val GET_DATA = "getData"

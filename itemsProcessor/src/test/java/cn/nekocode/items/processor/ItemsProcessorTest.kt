@@ -32,7 +32,6 @@ class ItemsProcessorTest {
             "com.test.TestAdapter",
             """
                 package com.test;
-                import ${Names.ADAPTER};
 
                 @${Names.ADAPTER}
                 public interface TestAdapter {}
@@ -54,7 +53,6 @@ class ItemsProcessorTest {
             "com.test.TestAdapter",
             """
                 package com.test;
-                import ${Names.ADAPTER};
 
                 @${Names.ADAPTER}
                 public class TestAdapter {}
@@ -68,5 +66,43 @@ class ItemsProcessorTest {
             .failsToCompile()
             .withErrorContaining("The adapter class should extends class " +
                     "${Names.ITEM_ADAPTER}:")
+    }
+
+    @Test
+    fun notOverrideMethods() {
+        fun javaFile(body: String = "") = JavaFileObjects.forSourceString(
+            "com.test.TestAdapter",
+            """
+                package com.test;
+
+                @${Names.ADAPTER}
+                public class TestAdapter extends ${Names.ITEM_ADAPTER} {${body}}
+            """.trimIndent()
+        )
+
+        Truth.assert_()
+            .about(JavaSourcesSubjectFactory.javaSources())
+            .that(arrayListOf(javaFile()))
+            .processedWith(ItemsProcessor())
+            .failsToCompile()
+            .withErrorContaining("The adapter class should override method")
+
+        Truth.assert_()
+            .about(JavaSourcesSubjectFactory.javaSources())
+            .that(arrayListOf(javaFile(
+                "@Override public <T> T getData(int position) { return (T) list.get(position); }")))
+            .processedWith(ItemsProcessor())
+            .failsToCompile()
+            .withErrorContaining("The adapter class should override method ${Names.GET_ITEM_COUNT}")
+
+        Truth.assert_()
+            .about(JavaSourcesSubjectFactory.javaSources())
+            .that(arrayListOf(javaFile(
+                "@Override public int getItemCount() { return list.size(); }")))
+            .processedWith(ItemsProcessor())
+            .failsToCompile()
+            .withErrorContaining("The adapter class should override method ${Names.GET_DATA}")
+
+        // TODO case of overriding two methods
     }
 }

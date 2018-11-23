@@ -21,6 +21,7 @@ import javax.annotation.processing.RoundEnvironment
 import javax.lang.model.SourceVersion
 import javax.lang.model.element.ElementKind
 import javax.lang.model.element.ExecutableElement
+import javax.lang.model.element.Modifier
 import javax.lang.model.element.TypeElement
 import javax.tools.Diagnostic
 
@@ -51,8 +52,15 @@ class ItemsProcessor : AbstractProcessor() {
                 return true
             }
 
-            // Define useful elements
             val adapterElement = annotatedElement as TypeElement
+
+            // Check if this element is abstract
+            if (!adapterElement.modifiers.contains(Modifier.ABSTRACT)) {
+                printError("The @${Names.ADAPTER} " +
+                        "should be abstract: ${annotatedElement.simpleName}")
+                return true
+            }
+
             val superElement = processingEnv.typeUtils
                 .asElement(adapterElement.superclass) as TypeElement
             val itemAdapterElement = elements().getTypeElement(Names.ITEM_ADAPTER)

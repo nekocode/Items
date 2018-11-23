@@ -16,70 +16,67 @@
 
 package cn.nekocode.items.processor
 
+import com.google.common.truth.Truth
 import com.google.testing.compile.JavaFileObjects
 import com.google.testing.compile.JavaSourcesSubjectFactory
 import org.junit.Test
-import com.google.common.truth.Truth
 
 /**
  * @author nekocode (nekocode.cn@gmail.com)
  */
 class ItemsProcessorTest {
 
+    private fun javaFile(
+        type: String = "abstract class",
+        extends: String = "extends ${Names.ITEM_ADAPTER}",
+        body: String = ""
+    ) = JavaFileObjects.forSourceString(
+        "com.test.TestAdapter",
+        """
+            package com.test;
+            @${Names.ADAPTER}
+            public $type TestAdapter $extends { $body }
+        """.trimIndent()
+    )
+
     @Test
     fun annotateInterface() {
-        val javaFile = JavaFileObjects.forSourceString(
-            "com.test.TestAdapter",
-            """
-                package com.test;
-
-                @${Names.ADAPTER}
-                public interface TestAdapter {}
-            """.trimIndent()
-        )
-
         Truth.assert_()
             .about(JavaSourcesSubjectFactory.javaSources())
-            .that(arrayListOf(javaFile))
+            .that(arrayListOf(javaFile("interface", "")))
             .processedWith(ItemsProcessor())
             .failsToCompile()
-            .withErrorContaining("The @${Names.ADAPTER} " +
-                    "should not annotates to interface:")
+            .withErrorContaining(
+                "The @${Names.ADAPTER} should not annotates to interface"
+            )
+    }
+
+    @Test
+    fun notAbstractClass() {
+        Truth.assert_()
+            .about(JavaSourcesSubjectFactory.javaSources())
+            .that(arrayListOf(javaFile("class")))
+            .processedWith(ItemsProcessor())
+            .failsToCompile()
+            .withErrorContaining(
+                "The @${Names.ADAPTER} should be abstract"
+            )
     }
 
     @Test
     fun notExtendsAdapter() {
-        val javaFile = JavaFileObjects.forSourceString(
-            "com.test.TestAdapter",
-            """
-                package com.test;
-
-                @${Names.ADAPTER}
-                public class TestAdapter {}
-            """.trimIndent()
-        )
-
         Truth.assert_()
             .about(JavaSourcesSubjectFactory.javaSources())
-            .that(arrayListOf(javaFile))
+            .that(arrayListOf(javaFile(extends = "")))
             .processedWith(ItemsProcessor())
             .failsToCompile()
-            .withErrorContaining("The adapter class should extends class " +
-                    "${Names.ITEM_ADAPTER}:")
+            .withErrorContaining(
+                "The adapter class should extends class ${Names.ITEM_ADAPTER}"
+            )
     }
 
     @Test
     fun notOverrideMethods() {
-        fun javaFile(body: String = "") = JavaFileObjects.forSourceString(
-            "com.test.TestAdapter",
-            """
-                package com.test;
-
-                @${Names.ADAPTER}
-                public class TestAdapter extends ${Names.ITEM_ADAPTER} {${body}}
-            """.trimIndent()
-        )
-
         Truth.assert_()
             .about(JavaSourcesSubjectFactory.javaSources())
             .that(arrayListOf(javaFile()))
@@ -87,22 +84,28 @@ class ItemsProcessorTest {
             .failsToCompile()
             .withErrorContaining("The adapter class should override method")
 
+        var body = "@Override public <T> T getData(int position) { return null; }"
         Truth.assert_()
             .about(JavaSourcesSubjectFactory.javaSources())
-            .that(arrayListOf(javaFile(
-                "@Override public <T> T getData(int position) { return (T) list.get(position); }")))
+            .that(arrayListOf(javaFile(body = body)))
             .processedWith(ItemsProcessor())
             .failsToCompile()
             .withErrorContaining("The adapter class should override method ${Names.GET_ITEM_COUNT}")
 
+        body = "@Override public int getItemCount() { return 0; }"
         Truth.assert_()
             .about(JavaSourcesSubjectFactory.javaSources())
-            .that(arrayListOf(javaFile(
-                "@Override public int getItemCount() { return list.size(); }")))
+            .that(arrayListOf(javaFile(body = body)))
             .processedWith(ItemsProcessor())
             .failsToCompile()
             .withErrorContaining("The adapter class should override method ${Names.GET_DATA}")
 
-        // TODO case of overriding two methods
+        body = "@Override public <T> T getData(int position) { return null; }" +
+                "@Override public int getItemCount() { return 0; }"
+        Truth.assert_()
+            .about(JavaSourcesSubjectFactory.javaSources())
+            .that(arrayListOf(javaFile(body = body)))
+            .processedWith(ItemsProcessor())
+            .compilesWithoutError()
     }
 }

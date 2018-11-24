@@ -22,5 +22,5 @@ package cn.nekocode.items.processor
  */
 sealed class Either<out T> {
     data class Success<T>(val value: T) : Either<T>()
-    data class Error(val msg: String?, val e: Exception?) : Either<Nothing>()
+    data class Error(val msg: String?, val e: Exception? = null) : Either<Nothing>()
 }

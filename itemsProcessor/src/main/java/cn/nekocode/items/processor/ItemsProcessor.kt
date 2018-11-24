@@ -19,10 +19,8 @@ package cn.nekocode.items.processor
 import javax.annotation.processing.AbstractProcessor
 import javax.annotation.processing.RoundEnvironment
 import javax.lang.model.SourceVersion
-import javax.lang.model.element.ElementKind
-import javax.lang.model.element.ExecutableElement
-import javax.lang.model.element.Modifier
-import javax.lang.model.element.TypeElement
+import javax.lang.model.element.*
+import javax.lang.model.type.TypeMirror
 import javax.tools.Diagnostic
 
 /**
@@ -45,24 +43,22 @@ class ItemsProcessor : AbstractProcessor() {
     ): Boolean {
         val annotationElement = elements().getTypeElement(Names.ADAPTER)
         for (annotatedElement in roundEnv.getElementsAnnotatedWith(annotationElement)) {
-            // Check if this element is not an interface
-            if (annotatedElement.kind == ElementKind.INTERFACE) {
-                printError("The @${Names.ADAPTER} " +
-                        "should not annotates to interface: ${annotatedElement.simpleName}")
-                return true
-            }
-
             val adapterElement = annotatedElement as TypeElement
 
-            // Check if this element is abstract
-            if (!adapterElement.modifiers.contains(Modifier.ABSTRACT)) {
+            // Check if this element is not an interface
+            if (adapterElement.kind == ElementKind.INTERFACE) {
                 printError("The @${Names.ADAPTER} " +
-                        "should be abstract: ${annotatedElement.simpleName}")
+                        "should not annotates to interface: ${adapterElement.qualifiedName}")
                 return true
             }
 
-            val superElement = processingEnv.typeUtils
-                .asElement(adapterElement.superclass) as TypeElement
+            // Check if this element is abstract
+            if (!adapterElement.isAbstract()) {
+                printError("The adapter should be abstract: ${adapterElement.qualifiedName}")
+                return true
+            }
+
+            val superElement = adapterElement.superclass.asElement() as TypeElement
             val itemAdapterElement = elements().getTypeElement(Names.ITEM_ADAPTER)
 
             // Check if the super class of this element is ItemAdapter
@@ -118,14 +114,83 @@ class ItemsProcessor : AbstractProcessor() {
                         "${adapterElement.qualifiedName}")
                 return true
             }
+
+            val delegateMethodElements = when (val either = findDelegateMethods(adapterElement)) {
+                is Either.Success -> either.value
+                is Either.Error -> {
+                    val errorMsg = either.msg!!
+                    printError(errorMsg)
+                    return true
+                }
+            }
+
+            findDelegates(delegateMethodElements)
         }
 
         return true
     }
 
-    private fun printError(msg: String) {
-        processingEnv.messager.printMessage(Diagnostic.Kind.ERROR, msg);
+    /**
+     * Find all methods which are annotated with @ViewDelegate
+     */
+    private fun findDelegateMethods(adapterElement: TypeElement): Either<List<ExecutableElement>> {
+        val viewDelegateElement = elements().getTypeElement(Names.VIEW_DELEGATE)
+        val methodElements = ArrayList<ExecutableElement>()
+
+        // Find delegate methods
+        for (element in adapterElement.enclosedElements) {
+            if (element !is ExecutableElement) {
+                continue
+            }
+
+            for (annotation in element.annotationMirrors) {
+                // Check if this element is annotated with @ViewDelegate
+                if (annotation.asElement() == viewDelegateElement) {
+                    methodElements.add(element)
+                }
+            }
+        }
+
+        // Validate these methods
+        for (element in methodElements) {
+            if (!element.isAbstract()) {
+                return Either.Error("The delegate method should be abstract: " +
+                        "${adapterElement.qualifiedName}#${element.simpleName}")
+            }
+
+            if (element.parameters.size > 0) {
+                return Either.Error("The delegate method should not have parameters: " +
+                        "${adapterElement.qualifiedName}#${element.simpleName}")
+            }
+        }
+        return Either.Success(methodElements)
+    }
+
+    /**
+     * Find all delegate interfaces
+     */
+    private fun findDelegates(methodElements: Iterable<ExecutableElement>): List<TypeElement> {
+        val viewDelegateOfElement = elements().getTypeElement(Names.VIEW_DELEGATE_OF)
+        val interfaceElements = ArrayList<TypeElement>()
+
+        for (element in methodElements) {
+            // todo
+        }
+        return interfaceElements
     }
 
     private fun elements() = processingEnv.elementUtils
+
+    private fun TypeMirror.asElement() =
+        processingEnv.typeUtils.asElement(this)
+
+    private fun AnnotationMirror.asElement() =
+        processingEnv.typeUtils.asElement(this.annotationType)
+
+    private fun Element.isAbstract() =
+        this.modifiers.contains(Modifier.ABSTRACT)
+
+    private fun printError(msg: String) {
+        processingEnv.messager.printMessage(Diagnostic.Kind.ERROR, msg);
+    }
 }

@@ -26,7 +26,114 @@ import org.junit.Test
  */
 class ItemsProcessorTest {
 
-    private fun javaFile(
+    companion object {
+        const val VIEW = "android.view.View"
+        const val VIEW_GROUP = "android.view.ViewGroup"
+        const val LAYOUT_INFLATER = "android.view.LayoutInflater"
+        const val METHOD_1 = "@Override public <T> T getData(int p) { return null; }"
+        const val METHOD_2 = "@Override public int getItemCount() { return 0; }"
+    }
+
+    @Test
+    fun annotateInterface() {
+        Truth.assert_()
+            .about(JavaSourcesSubjectFactory.javaSources())
+            .that(arrayListOf(adapterFile("interface", "")))
+            .processedWith(ItemsProcessor())
+            .failsToCompile()
+            .withErrorContaining(
+                "The @${Names.ADAPTER} should not annotates to interface"
+            )
+    }
+
+    @Test
+    fun notAbstractClass() {
+        Truth.assert_()
+            .about(JavaSourcesSubjectFactory.javaSources())
+            .that(arrayListOf(adapterFile("class")))
+            .processedWith(ItemsProcessor())
+            .failsToCompile()
+            .withErrorContaining(
+                "The adapter should be abstract"
+            )
+    }
+
+    @Test
+    fun notExtendsAdapter() {
+        Truth.assert_()
+            .about(JavaSourcesSubjectFactory.javaSources())
+            .that(arrayListOf(adapterFile(extends = "")))
+            .processedWith(ItemsProcessor())
+            .failsToCompile()
+            .withErrorContaining(
+                "The adapter class should extends class ${Names.ITEM_ADAPTER}"
+            )
+    }
+
+    @Test
+    fun notOverrideMethods() {
+        Truth.assert_()
+            .about(JavaSourcesSubjectFactory.javaSources())
+            .that(arrayListOf(adapterFile()))
+            .processedWith(ItemsProcessor())
+            .failsToCompile()
+            .withErrorContaining("The adapter class should override method")
+
+        Truth.assert_()
+            .about(JavaSourcesSubjectFactory.javaSources())
+            .that(arrayListOf(adapterFile(body = METHOD_1)))
+            .processedWith(ItemsProcessor())
+            .failsToCompile()
+            .withErrorContaining("The adapter class should override method ${Names.GET_ITEM_COUNT}")
+
+        Truth.assert_()
+            .about(JavaSourcesSubjectFactory.javaSources())
+            .that(arrayListOf(adapterFile(body = METHOD_2)))
+            .processedWith(ItemsProcessor())
+            .failsToCompile()
+            .withErrorContaining("The adapter class should override method ${Names.GET_DATA}")
+
+        Truth.assert_()
+            .about(JavaSourcesSubjectFactory.javaSources())
+            .that(arrayListOf(adapterFile(body = METHOD_1 + METHOD_2)))
+            .processedWith(ItemsProcessor())
+            .compilesWithoutError()
+    }
+
+    @Test
+    fun delegateMethods() {
+        fun wrap(body: String) = """
+            $METHOD_1
+            $METHOD_2
+            @${Names.VIEW_DELEGATE}
+            $body
+        """.trimIndent()
+
+        var body = wrap("public com.test.TestItemView.Delegate testItemView() {};")
+        Truth.assert_()
+            .about(JavaSourcesSubjectFactory.javaSources())
+            .that(arrayListOf(itemViewFile(), adapterFile(body = body)))
+            .processedWith(ItemsProcessor())
+            .failsToCompile()
+            .withErrorContaining("The delegate method should be abstract")
+
+        body = wrap("public abstract com.test.TestItemView.Delegate testItemView(int i) {};")
+        Truth.assert_()
+            .about(JavaSourcesSubjectFactory.javaSources())
+            .that(arrayListOf(itemViewFile(), adapterFile(body = body)))
+            .processedWith(ItemsProcessor())
+            .failsToCompile()
+            .withErrorContaining("The delegate method should not have parameters")
+
+        body = wrap("public abstract com.test.TestItemView.Delegate testItemView();")
+        Truth.assert_()
+            .about(JavaSourcesSubjectFactory.javaSources())
+            .that(arrayListOf(itemViewFile(), adapterFile(body = body)))
+            .processedWith(ItemsProcessor())
+            .compilesWithoutError()
+    }
+
+    private fun adapterFile(
         type: String = "abstract class",
         extends: String = "extends ${Names.ITEM_ADAPTER}",
         body: String = ""
@@ -39,73 +146,25 @@ class ItemsProcessorTest {
         """.trimIndent()
     )
 
-    @Test
-    fun annotateInterface() {
-        Truth.assert_()
-            .about(JavaSourcesSubjectFactory.javaSources())
-            .that(arrayListOf(javaFile("interface", "")))
-            .processedWith(ItemsProcessor())
-            .failsToCompile()
-            .withErrorContaining(
-                "The @${Names.ADAPTER} should not annotates to interface"
-            )
-    }
-
-    @Test
-    fun notAbstractClass() {
-        Truth.assert_()
-            .about(JavaSourcesSubjectFactory.javaSources())
-            .that(arrayListOf(javaFile("class")))
-            .processedWith(ItemsProcessor())
-            .failsToCompile()
-            .withErrorContaining(
-                "The @${Names.ADAPTER} should be abstract"
-            )
-    }
-
-    @Test
-    fun notExtendsAdapter() {
-        Truth.assert_()
-            .about(JavaSourcesSubjectFactory.javaSources())
-            .that(arrayListOf(javaFile(extends = "")))
-            .processedWith(ItemsProcessor())
-            .failsToCompile()
-            .withErrorContaining(
-                "The adapter class should extends class ${Names.ITEM_ADAPTER}"
-            )
-    }
-
-    @Test
-    fun notOverrideMethods() {
-        Truth.assert_()
-            .about(JavaSourcesSubjectFactory.javaSources())
-            .that(arrayListOf(javaFile()))
-            .processedWith(ItemsProcessor())
-            .failsToCompile()
-            .withErrorContaining("The adapter class should override method")
-
-        var body = "@Override public <T> T getData(int position) { return null; }"
-        Truth.assert_()
-            .about(JavaSourcesSubjectFactory.javaSources())
-            .that(arrayListOf(javaFile(body = body)))
-            .processedWith(ItemsProcessor())
-            .failsToCompile()
-            .withErrorContaining("The adapter class should override method ${Names.GET_ITEM_COUNT}")
-
-        body = "@Override public int getItemCount() { return 0; }"
-        Truth.assert_()
-            .about(JavaSourcesSubjectFactory.javaSources())
-            .that(arrayListOf(javaFile(body = body)))
-            .processedWith(ItemsProcessor())
-            .failsToCompile()
-            .withErrorContaining("The adapter class should override method ${Names.GET_DATA}")
-
-        body = "@Override public <T> T getData(int position) { return null; }" +
-                "@Override public int getItemCount() { return 0; }"
-        Truth.assert_()
-            .about(JavaSourcesSubjectFactory.javaSources())
-            .that(arrayListOf(javaFile(body = body)))
-            .processedWith(ItemsProcessor())
-            .compilesWithoutError()
-    }
+    private fun itemViewFile(
+    ) = JavaFileObjects.forSourceString(
+        "com.test.TestItemView",
+        """
+            package com.test;
+            public class TestItemView extends ${Names.ITEM_VIEW}<String, TestItemView.Callback> {
+                @Override
+                public $VIEW onCreateItemView($LAYOUT_INFLATER i, $VIEW_GROUP p) {
+                    return null;
+                }
+                @Override
+                public void onBindData(String d) {
+                }
+                @${Names.VIEW_DELEGATE_OF}(TestItemView.class)
+                interface Delegate extends ${Names.ITEM_VIEW_DELEGATE}<Callback> {}
+                public interface Callback {
+                    void onClick(String d);
+                }
+            }
+        """.trimIndent()
+    )
 }

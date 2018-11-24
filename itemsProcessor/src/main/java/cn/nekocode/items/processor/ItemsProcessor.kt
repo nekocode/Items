@@ -46,7 +46,7 @@ class ItemsProcessor : AbstractProcessor() {
             val adapterElement = annotatedElement as TypeElement
 
             // Check if this element is not an interface
-            if (adapterElement.kind == ElementKind.INTERFACE) {
+            if (adapterElement.isInterface()) {
                 printError("The @${Names.ADAPTER} " +
                         "should not annotates to interface: ${adapterElement.qualifiedName}")
                 return true
@@ -58,11 +58,10 @@ class ItemsProcessor : AbstractProcessor() {
                 return true
             }
 
-            val superElement = adapterElement.superclass.asElement() as TypeElement
             val itemAdapterElement = elements().getTypeElement(Names.ITEM_ADAPTER)
 
-            // Check if the super class of this element is ItemAdapter
-            if (superElement != itemAdapterElement) {
+            // Check if this element is extending ItemAdapter
+            if (!adapterElement.isExtending(itemAdapterElement)) {
                 printError("The adapter class should extends class ${itemAdapterElement.qualifiedName}: " +
                         "${adapterElement.qualifiedName}")
                 return true
@@ -126,7 +125,15 @@ class ItemsProcessor : AbstractProcessor() {
                 }
             }
 
-            findDelegates(delegateMethodElements)
+            // Find all delegate interfaces
+            val delegateElements = when (val either = findDelegates(adapterElement, delegateMethodElements)) {
+                is Either.Success -> either.value
+                is Either.Error -> {
+                    val errorMsg = either.msg!!
+                    printError(errorMsg)
+                    return true
+                }
+            }
         }
 
         return true
@@ -135,7 +142,9 @@ class ItemsProcessor : AbstractProcessor() {
     /**
      * Find all methods which are annotated with @ViewDelegate
      */
-    private fun findDelegateMethods(adapterElement: TypeElement): Either<List<ExecutableElement>> {
+    private fun findDelegateMethods(
+        adapterElement: TypeElement
+    ): Either<List<ExecutableElement>> {
         val viewDelegateElement = elements().getTypeElement(Names.VIEW_DELEGATE)
         val methodElements = ArrayList<ExecutableElement>()
 
@@ -145,11 +154,9 @@ class ItemsProcessor : AbstractProcessor() {
                 continue
             }
 
-            for (annotation in element.annotationMirrors) {
-                // Check if this element is annotated with @ViewDelegate
-                if (annotation.asElement() == viewDelegateElement) {
-                    methodElements.add(element)
-                }
+            // Check if this element is annotated with @ViewDelegate
+            if (element.isAnnotatedWith(viewDelegateElement)) {
+                methodElements.add(element)
             }
         }
 
@@ -171,26 +178,81 @@ class ItemsProcessor : AbstractProcessor() {
     /**
      * Find all delegate interfaces
      */
-    private fun findDelegates(methodElements: Iterable<ExecutableElement>): List<TypeElement> {
+    private fun findDelegates(
+        adapterElement: TypeElement,
+        methodElements: Iterable<ExecutableElement>
+    ): Either<List<TypeElement>> {
         val viewDelegateOfElement = elements().getTypeElement(Names.VIEW_DELEGATE_OF)
+        val itemViewDelegateElement = elements().getTypeElement(Names.ITEM_VIEW_DELEGATE)
         val interfaceElements = ArrayList<TypeElement>()
 
         for (element in methodElements) {
-            // todo
+            val returnElement = element.returnType.asElement() as TypeElement
+
+            // Check if the return type is interface
+            if (!returnElement.isInterface()) {
+                return Either.Error("The delegate method should return an interface: " +
+                        "${adapterElement.qualifiedName}#${element.simpleName}")
+            }
+
+            // Check if the delegate interface is annotated with @ViewDelegateOf
+            if (returnElement.isAnnotatedWith(viewDelegateOfElement)) {
+                interfaceElements.add(returnElement)
+            } else {
+                return Either.Error("The delegate interface should be annotated with " +
+                        "@${viewDelegateOfElement.qualifiedName}: " +
+                        "${returnElement.qualifiedName}")
+            }
+
+            // Check if the delegate interface is extending ItemViewDelegate
+            if (!returnElement.isExtending(itemViewDelegateElement)) {
+                return Either.Error("The delegate interface should extends interface " +
+                        "${itemViewDelegateElement.qualifiedName}: " +
+                        "${returnElement.qualifiedName}")
+            }
+
+            interfaceElements.add(returnElement)
         }
-        return interfaceElements
+
+        return Either.Success(interfaceElements)
     }
 
     private fun elements() = processingEnv.elementUtils
 
-    private fun TypeMirror.asElement() =
-        processingEnv.typeUtils.asElement(this)
+    private fun types() = processingEnv.typeUtils
+
+    private fun TypeMirror.asElement() = types().asElement(this)
 
     private fun AnnotationMirror.asElement() =
-        processingEnv.typeUtils.asElement(this.annotationType)
+        types().asElement(this.annotationType)
 
     private fun Element.isAbstract() =
         this.modifiers.contains(Modifier.ABSTRACT)
+
+    private fun TypeElement.isInterface() =
+        this.kind == ElementKind.INTERFACE
+
+    private fun TypeElement.isExtending(typeElement: TypeElement): Boolean {
+        if (!typeElement.isInterface()) {
+            return this.superclass.asElement() == typeElement
+        }
+
+        for (`interface` in this.interfaces) {
+            if (`interface`.asElement() == typeElement) {
+                return true
+            }
+        }
+        return false
+    }
+
+    private fun Element.isAnnotatedWith(annotationElement: TypeElement): Boolean {
+        for (annotation in this.annotationMirrors) {
+            if (annotation.asElement() == annotationElement) {
+                return true
+            }
+        }
+        return false
+    }
 
     private fun printError(msg: String) {
         processingEnv.messager.printMessage(Diagnostic.Kind.ERROR, msg);

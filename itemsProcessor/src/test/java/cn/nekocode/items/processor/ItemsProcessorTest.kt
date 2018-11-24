@@ -102,11 +102,11 @@ class ItemsProcessorTest {
 
     @Test
     fun delegateMethods() {
-        fun wrap(body: String) = """
+        fun wrap(method: String) = """
             $METHOD_1
             $METHOD_2
             @${Names.VIEW_DELEGATE}
-            $body
+            $method
         """.trimIndent()
 
         var body = wrap("public com.test.TestItemView.Delegate testItemView() {};")
@@ -133,6 +133,53 @@ class ItemsProcessorTest {
             .compilesWithoutError()
     }
 
+    @Test
+    fun delegateInterfaces() {
+        val adapterBody = """
+            $METHOD_1
+            $METHOD_2
+            @${Names.VIEW_DELEGATE}
+            public abstract com.test.TestItemView.Delegate testItemView();
+        """.trimIndent()
+
+        var itemViewFile = itemViewFile(
+            delegateType = "public class",
+            delegateExtends = ""
+        )
+        Truth.assert_()
+            .about(JavaSourcesSubjectFactory.javaSources())
+            .that(arrayListOf(itemViewFile, adapterFile(body = adapterBody)))
+            .processedWith(ItemsProcessor())
+            .failsToCompile()
+            .withErrorContaining("The delegate method should return an interface")
+
+        itemViewFile = itemViewFile(
+            delegateAnnotation = ""
+        )
+        Truth.assert_()
+            .about(JavaSourcesSubjectFactory.javaSources())
+            .that(arrayListOf(itemViewFile, adapterFile(body = adapterBody)))
+            .processedWith(ItemsProcessor())
+            .failsToCompile()
+            .withErrorContaining("The delegate interface should be annotated with")
+
+        itemViewFile = itemViewFile(
+            delegateExtends = ""
+        )
+        Truth.assert_()
+            .about(JavaSourcesSubjectFactory.javaSources())
+            .that(arrayListOf(itemViewFile, adapterFile(body = adapterBody)))
+            .processedWith(ItemsProcessor())
+            .failsToCompile()
+            .withErrorContaining("The delegate interface should extends interface")
+
+        Truth.assert_()
+            .about(JavaSourcesSubjectFactory.javaSources())
+            .that(arrayListOf(itemViewFile(), adapterFile(body = adapterBody)))
+            .processedWith(ItemsProcessor())
+            .compilesWithoutError()
+    }
+
     private fun adapterFile(
         type: String = "abstract class",
         extends: String = "extends ${Names.ITEM_ADAPTER}",
@@ -147,6 +194,9 @@ class ItemsProcessorTest {
     )
 
     private fun itemViewFile(
+        delegateAnnotation: String = "@${Names.VIEW_DELEGATE_OF}(TestItemView.class)",
+        delegateType: String = "interface",
+        delegateExtends: String = "extends ${Names.ITEM_VIEW_DELEGATE}<Callback>"
     ) = JavaFileObjects.forSourceString(
         "com.test.TestItemView",
         """
@@ -159,8 +209,8 @@ class ItemsProcessorTest {
                 @Override
                 public void onBindData(String d) {
                 }
-                @${Names.VIEW_DELEGATE_OF}(TestItemView.class)
-                interface Delegate extends ${Names.ITEM_VIEW_DELEGATE}<Callback> {}
+                $delegateAnnotation
+                $delegateType Delegate $delegateExtends {}
                 public interface Callback {
                     void onClick(String d);
                 }

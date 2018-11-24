@@ -173,6 +173,16 @@ class ItemsProcessorTest {
             .failsToCompile()
             .withErrorContaining("The delegate interface should extends interface")
 
+        itemViewFile = itemViewFile(
+            delegateExtends = "extends ${Names.ITEM_VIEW_DELEGATE}<String>"
+        )
+        Truth.assert_()
+            .about(JavaSourcesSubjectFactory.javaSources())
+            .that(arrayListOf(itemViewFile, adapterFile(body = adapterBody)))
+            .processedWith(ItemsProcessor())
+            .failsToCompile()
+            .withErrorContaining("Callback types of delegate interface and item view unmatched")
+
         Truth.assert_()
             .about(JavaSourcesSubjectFactory.javaSources())
             .that(arrayListOf(itemViewFile(), adapterFile(body = adapterBody)))

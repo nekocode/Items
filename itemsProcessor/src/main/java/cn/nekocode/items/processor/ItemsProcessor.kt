@@ -20,6 +20,7 @@ import javax.annotation.processing.AbstractProcessor
 import javax.annotation.processing.RoundEnvironment
 import javax.lang.model.SourceVersion
 import javax.lang.model.element.*
+import javax.lang.model.type.DeclaredType
 import javax.lang.model.type.TypeKind
 import javax.lang.model.type.TypeMirror
 import javax.tools.Diagnostic
@@ -62,7 +63,7 @@ class ItemsProcessor : AbstractProcessor() {
             val itemAdapterElement = elements().getTypeElement(Names.ITEM_ADAPTER)
 
             // Check if this element is extending ItemAdapter
-            if (!adapterElement.isExtending(itemAdapterElement)) {
+            if (adapterElement.findExtendsType(itemAdapterElement) == null) {
                 printError("The adapter class should extends class ${itemAdapterElement.qualifiedName}: " +
                         "${adapterElement.qualifiedName}")
                 continue
@@ -134,12 +135,12 @@ class ItemsProcessor : AbstractProcessor() {
             ) ?: continue@processing
 
             // Find all delegate interfaces
-            val (delegateElements, viewElements) = getOrPrintError(
+            val (delegateElements, viewElements, dataTypeElements, callbackTypeElements) = getOrPrintError(
                 findDelegates(adapterElement, delegateMethodElements)
             ) ?: continue@processing
 
             // Find all selector methods
-            val (selectorMethodElements, dataTypeElements) = getOrPrintError(
+            val (selectorMethodElements, selectorDataTypeElements) = getOrPrintError(
                 findSelectors(adapterElement)
             ) ?: continue@processing
 
@@ -187,54 +188,73 @@ class ItemsProcessor : AbstractProcessor() {
 
     /**
      * Find all delegate interfaces
-     * @return list of delegate interfaces & list of item views
+     * @return list of delegate interfaces, list of item views, list of data types, list of callback types
      */
     private fun findDelegates(
         adapterElement: TypeElement,
         methodElements: List<ExecutableElement>
-    ): Either<Pair<List<TypeElement>, List<TypeElement>>> {
+    ): Either<Quadruple<List<TypeElement>, List<TypeElement>, List<TypeElement>, List<TypeElement>>> {
         val viewDelegateOfElement = elements().getTypeElement(Names.VIEW_DELEGATE_OF)
         val itemViewDelegateElement = elements().getTypeElement(Names.ITEM_VIEW_DELEGATE)
-        val interfaceElements = ArrayList<TypeElement>()
-        val itemViewElements = ArrayList<TypeElement>()
+        val delegateElements = ArrayList<TypeElement>()
+        val viewElements = ArrayList<TypeElement>()
+        val dataTypeElements = ArrayList<TypeElement>()
+        val callbackTypeElements = ArrayList<TypeElement>()
 
         for (element in methodElements) {
-            val returnElement = element.returnType.asElement() as TypeElement
+            val delegateElement = element.returnType.asElement() as TypeElement
 
             // Check if the return type is interface
-            if (!returnElement.isInterface()) {
+            if (!delegateElement.isInterface()) {
                 return Either.Error("The delegate method should return an interface: " +
                         "${adapterElement.qualifiedName}#${element.simpleName}")
             }
 
             // Check if the delegate interface is annotated with @ViewDelegateOf
-            val viewDelegateOfAnnotation = returnElement.findAnnotation(viewDelegateOfElement)
+            val viewDelegateOfAnnotation = delegateElement.findAnnotation(viewDelegateOfElement)
                 ?: return Either.Error(
                     "The delegate interface should be annotated with " +
                             "@${viewDelegateOfElement.qualifiedName}: " +
-                            "${returnElement.qualifiedName}"
+                            "${delegateElement.qualifiedName}"
                 )
 
             // Check if the delegate interface is extending ItemViewDelegate
-            if (!returnElement.isExtending(itemViewDelegateElement)) {
-                return Either.Error("The delegate interface should extends interface " +
-                        "${itemViewDelegateElement.qualifiedName}: " +
-                        "${returnElement.qualifiedName}")
-            }
+            val delegateSuperType = delegateElement.findExtendsType(itemViewDelegateElement)
+                ?: return Either.Error(
+                    "The delegate interface should extends interface " +
+                            "${itemViewDelegateElement.qualifiedName}: " +
+                            "${delegateElement.qualifiedName}"
+                )
 
-            interfaceElements.add(returnElement)
+            // Add delegate interface
+            delegateElements.add(delegateElement)
 
-            val itemViewElement = (viewDelegateOfAnnotation.getValue("value") as TypeMirror)
+            // Add item view
+            val viewElement = (viewDelegateOfAnnotation.getValue("value") as TypeMirror)
                 .asElement() as TypeElement
-            itemViewElements.add(itemViewElement)
+            viewElements.add(viewElement)
+
+            val itemViewGenericTypes = (viewElement.superclass as DeclaredType).typeArguments
+            // Add data type
+            dataTypeElements.add(itemViewGenericTypes[0].asElement() as TypeElement)
+            // Add callback
+            val callbackElement = itemViewGenericTypes[1].asElement() as TypeElement
+            callbackTypeElements.add(callbackElement)
+
+            // Check if callback types matches
+            if (callbackElement != (delegateSuperType as DeclaredType).typeArguments[0].asElement()) {
+                return Either.Error("Callback types of delegate interface and item view unmatched: " +
+                        "${delegateElement.qualifiedName}")
+            }
         }
 
-        return Either.Success(Pair(interfaceElements, itemViewElements))
+        return Either.Success(Quadruple(
+            delegateElements, viewElements, dataTypeElements, callbackTypeElements))
     }
 
     /**
      * Find all methods which are annotated with @ViewSelector
-     * @return list of selector methods & list of data types
+     * @return list of selector methods, list of data types
      */
     private fun findSelectors(
         adapterElement: TypeElement
@@ -292,17 +312,21 @@ class ItemsProcessor : AbstractProcessor() {
     private fun TypeElement.isInterface() =
         this.kind == ElementKind.INTERFACE
 
-    private fun TypeElement.isExtending(typeElement: TypeElement): Boolean {
+    private fun TypeElement.findExtendsType(typeElement: TypeElement): TypeMirror? {
         if (!typeElement.isInterface()) {
-            return this.superclass.asElement() == typeElement
+            return if (this.superclass.asElement() == typeElement) {
+                this.superclass
+            } else {
+                null
+            }
         }
 
         for (`interface` in this.interfaces) {
             if (`interface`.asElement() == typeElement) {
-                return true
+                return `interface`
             }
         }
-        return false
+        return null
     }
 
     private fun Element.findAnnotation(annotationElement: TypeElement): AnnotationMirror? {
@@ -324,6 +348,6 @@ class ItemsProcessor : AbstractProcessor() {
     }
 
     private fun printError(msg: String) {
-        processingEnv.messager.printMessage(Diagnostic.Kind.ERROR, msg);
+        processingEnv.messager.printMessage(Diagnostic.Kind.ERROR, msg)
     }
 }

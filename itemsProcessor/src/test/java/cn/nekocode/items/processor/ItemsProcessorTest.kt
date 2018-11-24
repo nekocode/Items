@@ -180,6 +180,24 @@ class ItemsProcessorTest {
             .compilesWithoutError()
     }
 
+    @Test
+    fun selectorMethods() {
+        val adapterBody = """
+            $METHOD_1
+            $METHOD_2
+            @${Names.VIEW_SELECTOR}
+            public int viewTypeForString(int position, String data) {
+                return 0;
+            }
+        """.trimIndent()
+
+        Truth.assert_()
+            .about(JavaSourcesSubjectFactory.javaSources())
+            .that(arrayListOf(itemViewFile(), adapterFile(body = adapterBody)))
+            .processedWith(ItemsProcessor())
+            .failsToCompile()
+    }
+
     private fun adapterFile(
         type: String = "abstract class",
         extends: String = "extends ${Names.ITEM_ADAPTER}",

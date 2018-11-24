@@ -20,6 +20,7 @@ import javax.annotation.processing.AbstractProcessor
 import javax.annotation.processing.RoundEnvironment
 import javax.lang.model.SourceVersion
 import javax.lang.model.element.*
+import javax.lang.model.type.TypeKind
 import javax.lang.model.type.TypeMirror
 import javax.tools.Diagnostic
 
@@ -115,25 +116,35 @@ class ItemsProcessor : AbstractProcessor() {
                 continue
             }
 
-            // Find all delegate methods
-            val delegateMethodElements = when (val either = findDelegateMethods(adapterElement)) {
-                is Either.Success -> either.value
-                is Either.Error -> {
-                    val errorMsg = either.msg!!
-                    printError(errorMsg)
-                    continue@processing
+            // To unwrap either
+            fun <T> getOrPrintError(either: Either<T>): T? {
+                return when (either) {
+                    is Either.Success -> either.value
+                    is Either.Error -> {
+                        val errorMsg = either.msg!!
+                        printError(errorMsg)
+                        null
+                    }
                 }
             }
 
+            // Find all delegate methods
+            val delegateMethodElements = getOrPrintError(
+                findDelegateMethods(adapterElement)
+            ) ?: continue@processing
+
             // Find all delegate interfaces
-            val delegateElements = when (val either = findDelegates(adapterElement, delegateMethodElements)) {
-                is Either.Success -> either.value
-                is Either.Error -> {
-                    val errorMsg = either.msg!!
-                    printError(errorMsg)
-                    continue@processing
-                }
+            val delegateElements = getOrPrintError(
+                findDelegates(adapterElement, delegateMethodElements)
+            ) ?: continue@processing
+
+            // All item views
+            val viewElements = ArrayList<TypeElement>()
+            for (element in delegateElements) {
+                // todo
             }
+
+            findSelectors(adapterElement)
         }
 
         return true
@@ -215,6 +226,44 @@ class ItemsProcessor : AbstractProcessor() {
         }
 
         return Either.Success(interfaceElements)
+    }
+
+    /**
+     * Find all methods which are annotated with @ViewSelector
+     */
+    private fun findSelectors(
+        adapterElement: TypeElement
+    ): Either<List<ExecutableElement>> {
+        val viewSelectorElement = elements().getTypeElement(Names.VIEW_SELECTOR)
+        val methodElements = ArrayList<ExecutableElement>()
+
+        // Find selector methods
+        for (element in adapterElement.enclosedElements) {
+            if (element !is ExecutableElement) {
+                continue
+            }
+
+            // Check if this element is annotated with @ViewDelegate
+            if (element.isAnnotatedWith(viewSelectorElement)) {
+                methodElements.add(element)
+            }
+        }
+
+        // Validate these methods
+        for (element in methodElements) {
+            if (element.isAbstract()) {
+                return Either.Error("The selector method should be implemented: " +
+                        "${adapterElement.qualifiedName}#${element.simpleName}")
+            }
+
+            // todo: need a data map
+            val parameters = element.parameters
+            if (parameters.size != 2 ||
+                parameters[0].asType().kind != TypeKind.INT) {
+            }
+        }
+
+        return Either.Success(methodElements)
     }
 
     private fun elements() = processingEnv.elementUtils

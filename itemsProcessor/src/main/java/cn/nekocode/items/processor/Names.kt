@@ -27,6 +27,7 @@ object Names {
     const val VIEW_DELEGATE_OF = "cn.nekocode.items.annotation.ViewDelegateOf"
     const val ITEM_VIEW = "cn.nekocode.items.ItemView"
     const val ITEM_VIEW_DELEGATE = "cn.nekocode.items.ItemViewDelegate"
+    const val VIEW_SELECTOR = "cn.nekocode.items.annotation.ViewSelector"
     const val ITEM_VIEW_SELECTOR = "cn.nekocode.items.ItemViewSelector"
     const val GET_DATA = "getData"
     const val GET_ITEM_COUNT = "getItemCount"

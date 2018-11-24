@@ -42,7 +42,7 @@ class ItemsProcessor : AbstractProcessor() {
         roundEnv: RoundEnvironment
     ): Boolean {
         val annotationElement = elements().getTypeElement(Names.ADAPTER)
-        for (annotatedElement in roundEnv.getElementsAnnotatedWith(annotationElement)) {
+        processing@ for (annotatedElement in roundEnv.getElementsAnnotatedWith(annotationElement)) {
             val adapterElement = annotatedElement as TypeElement
 
             // Check if this element is not an interface
@@ -121,10 +121,9 @@ class ItemsProcessor : AbstractProcessor() {
                 is Either.Error -> {
                     val errorMsg = either.msg!!
                     printError(errorMsg)
-                    null
+                    continue@processing
                 }
             }
-            delegateMethodElements ?: continue
 
             // Find all delegate interfaces
             val delegateElements = when (val either = findDelegates(adapterElement, delegateMethodElements)) {
@@ -132,10 +131,9 @@ class ItemsProcessor : AbstractProcessor() {
                 is Either.Error -> {
                     val errorMsg = either.msg!!
                     printError(errorMsg)
-                    null
+                    continue@processing
                 }
             }
-            delegateElements ?: continue
         }
 
         return true

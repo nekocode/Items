@@ -138,7 +138,12 @@ class ItemsProcessor : AbstractProcessor() {
                 findDelegates(adapterElement, delegateMethodElements)
             ) ?: continue@processing
 
-            findSelectors(adapterElement)
+            // Find all selector methods
+            val (selectorMethodElements, dataTypeElements) = getOrPrintError(
+                findSelectors(adapterElement)
+            ) ?: continue@processing
+
+            // todo: validate all previous elements
         }
 
         return true
@@ -229,12 +234,14 @@ class ItemsProcessor : AbstractProcessor() {
 
     /**
      * Find all methods which are annotated with @ViewSelector
+     * @return list of selector methods & list of data types
      */
     private fun findSelectors(
         adapterElement: TypeElement
-    ): Either<List<ExecutableElement>> {
+    ): Either<Pair<List<ExecutableElement>, List<TypeElement>>> {
         val viewSelectorElement = elements().getTypeElement(Names.VIEW_SELECTOR)
         val methodElements = ArrayList<ExecutableElement>()
+        val dataTypeElements = ArrayList<TypeElement>()
 
         // Find selector methods
         for (element in adapterElement.enclosedElements) {
@@ -250,19 +257,24 @@ class ItemsProcessor : AbstractProcessor() {
 
         // Validate these methods
         for (element in methodElements) {
+            // Check if this method is implemented
             if (element.isAbstract()) {
                 return Either.Error("The selector method should be implemented: " +
                         "${adapterElement.qualifiedName}#${element.simpleName}")
             }
 
-            // todo: need a data map
+            // Check parameters of this method
             val parameters = element.parameters
             if (parameters.size != 2 ||
                 parameters[0].asType().kind != TypeKind.INT) {
+                return Either.Error("Parameters of the selector method should be (int index, YourDataType data): " +
+                        "${adapterElement.qualifiedName}#${element.simpleName}")
             }
+
+            dataTypeElements.add(parameters[1].asType().asElement() as TypeElement)
         }
 
-        return Either.Success(methodElements)
+        return Either.Success(Pair(methodElements, dataTypeElements))
     }
 
     private fun elements() = processingEnv.elementUtils

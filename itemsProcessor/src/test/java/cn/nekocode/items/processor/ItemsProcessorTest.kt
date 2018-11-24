@@ -182,21 +182,43 @@ class ItemsProcessorTest {
 
     @Test
     fun selectorMethods() {
-        val adapterBody = """
+        fun wrap(method: String) = """
             $METHOD_1
             $METHOD_2
             @${Names.VIEW_SELECTOR}
-            public int viewTypeForString(int position, String data) {
-                return 0;
-            }
+            $method
         """.trimIndent()
 
-        // fixme
+        var body = wrap("public abstract int viewTypeForString(int p, String d);")
         Truth.assert_()
             .about(JavaSourcesSubjectFactory.javaSources())
-            .that(arrayListOf(itemViewFile(), adapterFile(body = adapterBody)))
+            .that(arrayListOf(itemViewFile(), adapterFile(body = body)))
             .processedWith(ItemsProcessor())
             .failsToCompile()
+            .withErrorContaining("The selector method should be implemented")
+
+        body = wrap("public int viewTypeForString(int p) { return 0; };")
+        Truth.assert_()
+            .about(JavaSourcesSubjectFactory.javaSources())
+            .that(arrayListOf(itemViewFile(), adapterFile(body = body)))
+            .processedWith(ItemsProcessor())
+            .failsToCompile()
+            .withErrorContaining("Parameters of the selector method should be (int index, YourDataType data)")
+
+        body = wrap("public int viewTypeForString(String p, String d) { return 0; };")
+        Truth.assert_()
+            .about(JavaSourcesSubjectFactory.javaSources())
+            .that(arrayListOf(itemViewFile(), adapterFile(body = body)))
+            .processedWith(ItemsProcessor())
+            .failsToCompile()
+            .withErrorContaining("Parameters of the selector method should be (int index, YourDataType data)")
+
+        body = wrap("public int viewTypeForString(int p, String d) { return 0; };")
+        Truth.assert_()
+            .about(JavaSourcesSubjectFactory.javaSources())
+            .that(arrayListOf(itemViewFile(), adapterFile(body = body)))
+            .processedWith(ItemsProcessor())
+            .compilesWithoutError()
     }
 
     private fun adapterFile(

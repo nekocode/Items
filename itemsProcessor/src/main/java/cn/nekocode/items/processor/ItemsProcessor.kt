@@ -135,12 +135,12 @@ class ItemsProcessor : AbstractProcessor() {
             ) ?: continue@processing
 
             // Find all delegate interfaces
-            val (delegateElements, viewElements, dataTypeElements, callbackTypeElements) = getOrPrintError(
+            val (delegateElements, viewElements, dataElements, callbackElements) = getOrPrintError(
                 findDelegates(adapterElement, delegateMethodElements)
             ) ?: continue@processing
 
             // Find all selector methods
-            val (selectorMethodElements, selectorDataTypeElements) = getOrPrintError(
+            val (selectorMethodElements, selectorDataElements) = getOrPrintError(
                 findSelectors(adapterElement)
             ) ?: continue@processing
 
@@ -188,7 +188,7 @@ class ItemsProcessor : AbstractProcessor() {
 
     /**
      * Find all delegate interfaces
-     * @return list of delegate interfaces, list of item views, list of data types, list of callback types
+     * @return list of delegate interfaces, list of item views, list of data, list of callbacks
      */
     private fun findDelegates(
         adapterElement: TypeElement,
@@ -198,8 +198,8 @@ class ItemsProcessor : AbstractProcessor() {
         val itemViewDelegateElement = elements().getTypeElement(Names.ITEM_VIEW_DELEGATE)
         val delegateElements = ArrayList<TypeElement>()
         val viewElements = ArrayList<TypeElement>()
-        val dataTypeElements = ArrayList<TypeElement>()
-        val callbackTypeElements = ArrayList<TypeElement>()
+        val dataElements = ArrayList<TypeElement>()
+        val callbackElements = ArrayList<TypeElement>()
 
         for (element in methodElements) {
             val delegateElement = element.returnType.asElement() as TypeElement
@@ -236,10 +236,10 @@ class ItemsProcessor : AbstractProcessor() {
 
             val itemViewGenericTypes = (viewElement.superclass as DeclaredType).typeArguments
             // Add data type
-            dataTypeElements.add(itemViewGenericTypes[0].asElement() as TypeElement)
+            dataElements.add(itemViewGenericTypes[0].asElement() as TypeElement)
             // Add callback
             val callbackElement = itemViewGenericTypes[1].asElement() as TypeElement
-            callbackTypeElements.add(callbackElement)
+            callbackElements.add(callbackElement)
 
             // Check if callback types matches
             if (callbackElement != (delegateSuperType as DeclaredType).typeArguments[0].asElement()) {
@@ -249,7 +249,7 @@ class ItemsProcessor : AbstractProcessor() {
         }
 
         return Either.Success(Quadruple(
-            delegateElements, viewElements, dataTypeElements, callbackTypeElements))
+            delegateElements, viewElements, dataElements, callbackElements))
     }
 
     /**
@@ -261,7 +261,7 @@ class ItemsProcessor : AbstractProcessor() {
     ): Either<Pair<List<ExecutableElement>, List<TypeElement>>> {
         val viewSelectorElement = elements().getTypeElement(Names.VIEW_SELECTOR)
         val methodElements = ArrayList<ExecutableElement>()
-        val dataTypeElements = ArrayList<TypeElement>()
+        val dataElements = ArrayList<TypeElement>()
 
         // Find selector methods
         for (element in adapterElement.enclosedElements) {
@@ -291,10 +291,10 @@ class ItemsProcessor : AbstractProcessor() {
                         "${adapterElement.qualifiedName}#${element.simpleName}")
             }
 
-            dataTypeElements.add(parameters[1].asType().asElement() as TypeElement)
+            dataElements.add(parameters[1].asType().asElement() as TypeElement)
         }
 
-        return Either.Success(Pair(methodElements, dataTypeElements))
+        return Either.Success(Pair(methodElements, dataElements))
     }
 
     private fun elements() = processingEnv.elementUtils

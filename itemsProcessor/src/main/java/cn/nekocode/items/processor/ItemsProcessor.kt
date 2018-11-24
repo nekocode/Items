@@ -88,6 +88,7 @@ class ItemsProcessor : AbstractProcessor() {
             }
             val getItemCountElement = foundElement!!
 
+            // Check if this element override specified methods
             var overrideGetData = false
             var overrideGetItemCount = false
             for (element in adapterElement.enclosedElements) {
@@ -115,6 +116,7 @@ class ItemsProcessor : AbstractProcessor() {
                 return true
             }
 
+            // Find all delegate methods
             val delegateMethodElements = when (val either = findDelegateMethods(adapterElement)) {
                 is Either.Success -> either.value
                 is Either.Error -> {

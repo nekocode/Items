@@ -191,6 +191,7 @@ class ItemsProcessorTest {
             }
         """.trimIndent()
 
+        // fixme
         Truth.assert_()
             .about(JavaSourcesSubjectFactory.javaSources())
             .that(arrayListOf(itemViewFile(), adapterFile(body = adapterBody)))

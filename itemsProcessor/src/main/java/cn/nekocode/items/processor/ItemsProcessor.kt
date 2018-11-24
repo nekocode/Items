@@ -72,7 +72,7 @@ class ItemsProcessor : AbstractProcessor() {
             var foundElement: ExecutableElement? = null
             for (element in itemAdapterElement.enclosedElements) {
                 if (element is ExecutableElement &&
-                    element.simpleName.toString() == Names.GET_DATA) {
+                    element.simpleName.contentEquals(Names.GET_DATA)) {
                     foundElement = element
                 }
             }
@@ -82,7 +82,7 @@ class ItemsProcessor : AbstractProcessor() {
             foundElement = null
             for (element in elements().getTypeElement(Names.RECYCLER_VIEW_ADAPTER).enclosedElements) {
                 if (element is ExecutableElement &&
-                    element.simpleName.toString() == Names.GET_ITEM_COUNT) {
+                    element.simpleName.contentEquals(Names.GET_ITEM_COUNT)) {
                     foundElement = element
                 }
             }
@@ -96,11 +96,11 @@ class ItemsProcessor : AbstractProcessor() {
                     continue
                 }
 
-                if (!overrideGetData && element.simpleName.toString() == Names.GET_DATA) {
+                if (!overrideGetData && element.simpleName.contentEquals(Names.GET_DATA)) {
                     overrideGetData = elements().overrides(
                         element, getDataElement, adapterElement)
                 }
-                if (!overrideGetItemCount && element.simpleName.toString() == Names.GET_ITEM_COUNT) {
+                if (!overrideGetItemCount && element.simpleName.contentEquals(Names.GET_ITEM_COUNT)) {
                     overrideGetItemCount = elements().overrides(
                         element, getItemCountElement, adapterElement)
                 }
@@ -134,15 +134,9 @@ class ItemsProcessor : AbstractProcessor() {
             ) ?: continue@processing
 
             // Find all delegate interfaces
-            val delegateElements = getOrPrintError(
+            val (delegateElements, viewElements) = getOrPrintError(
                 findDelegates(adapterElement, delegateMethodElements)
             ) ?: continue@processing
-
-            // All item views
-            val viewElements = ArrayList<TypeElement>()
-            for (element in delegateElements) {
-                // todo
-            }
 
             findSelectors(adapterElement)
         }
@@ -166,7 +160,7 @@ class ItemsProcessor : AbstractProcessor() {
             }
 
             // Check if this element is annotated with @ViewDelegate
-            if (element.isAnnotatedWith(viewDelegateElement)) {
+            if (element.findAnnotation(viewDelegateElement) != null) {
                 methodElements.add(element)
             }
         }
@@ -188,14 +182,16 @@ class ItemsProcessor : AbstractProcessor() {
 
     /**
      * Find all delegate interfaces
+     * @return list of delegate interfaces & list of item views
      */
     private fun findDelegates(
         adapterElement: TypeElement,
-        methodElements: Iterable<ExecutableElement>
-    ): Either<List<TypeElement>> {
+        methodElements: List<ExecutableElement>
+    ): Either<Pair<List<TypeElement>, List<TypeElement>>> {
         val viewDelegateOfElement = elements().getTypeElement(Names.VIEW_DELEGATE_OF)
         val itemViewDelegateElement = elements().getTypeElement(Names.ITEM_VIEW_DELEGATE)
         val interfaceElements = ArrayList<TypeElement>()
+        val itemViewElements = ArrayList<TypeElement>()
 
         for (element in methodElements) {
             val returnElement = element.returnType.asElement() as TypeElement
@@ -207,13 +203,12 @@ class ItemsProcessor : AbstractProcessor() {
             }
 
             // Check if the delegate interface is annotated with @ViewDelegateOf
-            if (returnElement.isAnnotatedWith(viewDelegateOfElement)) {
-                interfaceElements.add(returnElement)
-            } else {
-                return Either.Error("The delegate interface should be annotated with " +
-                        "@${viewDelegateOfElement.qualifiedName}: " +
-                        "${returnElement.qualifiedName}")
-            }
+            val viewDelegateOfAnnotation = returnElement.findAnnotation(viewDelegateOfElement)
+                ?: return Either.Error(
+                    "The delegate interface should be annotated with " +
+                            "@${viewDelegateOfElement.qualifiedName}: " +
+                            "${returnElement.qualifiedName}"
+                )
 
             // Check if the delegate interface is extending ItemViewDelegate
             if (!returnElement.isExtending(itemViewDelegateElement)) {
@@ -223,9 +218,13 @@ class ItemsProcessor : AbstractProcessor() {
             }
 
             interfaceElements.add(returnElement)
+
+            val itemViewElement = (viewDelegateOfAnnotation.getValue("value") as TypeMirror)
+                .asElement() as TypeElement
+            itemViewElements.add(itemViewElement)
         }
 
-        return Either.Success(interfaceElements)
+        return Either.Success(Pair(interfaceElements, itemViewElements))
     }
 
     /**
@@ -244,7 +243,7 @@ class ItemsProcessor : AbstractProcessor() {
             }
 
             // Check if this element is annotated with @ViewDelegate
-            if (element.isAnnotatedWith(viewSelectorElement)) {
+            if (element.findAnnotation(viewSelectorElement) != null) {
                 methodElements.add(element)
             }
         }
@@ -294,13 +293,22 @@ class ItemsProcessor : AbstractProcessor() {
         return false
     }
 
-    private fun Element.isAnnotatedWith(annotationElement: TypeElement): Boolean {
+    private fun Element.findAnnotation(annotationElement: TypeElement): AnnotationMirror? {
         for (annotation in this.annotationMirrors) {
             if (annotation.asElement() == annotationElement) {
-                return true
+                return annotation
             }
         }
-        return false
+        return null
+    }
+
+    private fun AnnotationMirror.getValue(name: String): Any? {
+        for ((key, value) in this.elementValues) {
+            if (key.simpleName.contentEquals(name)) {
+                return value.value
+            }
+        }
+        return null
     }
 
     private fun printError(msg: String) {

@@ -49,13 +49,13 @@ class ItemsProcessor : AbstractProcessor() {
             if (adapterElement.isInterface()) {
                 printError("The @${Names.ADAPTER} " +
                         "should not annotates to interface: ${adapterElement.qualifiedName}")
-                return true
+                continue
             }
 
             // Check if this element is abstract
             if (!adapterElement.isAbstract()) {
                 printError("The adapter should be abstract: ${adapterElement.qualifiedName}")
-                return true
+                continue
             }
 
             val itemAdapterElement = elements().getTypeElement(Names.ITEM_ADAPTER)
@@ -64,7 +64,7 @@ class ItemsProcessor : AbstractProcessor() {
             if (!adapterElement.isExtending(itemAdapterElement)) {
                 printError("The adapter class should extends class ${itemAdapterElement.qualifiedName}: " +
                         "${adapterElement.qualifiedName}")
-                return true
+                continue
             }
 
             // Get the method element of getData()
@@ -107,12 +107,12 @@ class ItemsProcessor : AbstractProcessor() {
             if (!overrideGetData) {
                 printError("The adapter class should override method ${Names.GET_DATA}(): " +
                         "${adapterElement.qualifiedName}")
-                return true
+                continue
             }
             if (!overrideGetItemCount) {
                 printError("The adapter class should override method ${Names.GET_ITEM_COUNT}(): " +
                         "${adapterElement.qualifiedName}")
-                return true
+                continue
             }
 
             // Find all delegate methods
@@ -121,9 +121,10 @@ class ItemsProcessor : AbstractProcessor() {
                 is Either.Error -> {
                     val errorMsg = either.msg!!
                     printError(errorMsg)
-                    return true
+                    null
                 }
             }
+            delegateMethodElements ?: continue
 
             // Find all delegate interfaces
             val delegateElements = when (val either = findDelegates(adapterElement, delegateMethodElements)) {
@@ -131,9 +132,10 @@ class ItemsProcessor : AbstractProcessor() {
                 is Either.Error -> {
                     val errorMsg = either.msg!!
                     printError(errorMsg)
-                    return true
+                    null
                 }
             }
+            delegateElements ?: continue
         }
 
         return true

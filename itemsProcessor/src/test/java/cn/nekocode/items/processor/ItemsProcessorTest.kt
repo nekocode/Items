@@ -102,11 +102,12 @@ class ItemsProcessorTest {
 
     @Test
     fun delegateMethods() {
-        fun wrap(method: String) = """
+        fun wrap(method: String, others: String = "") = """
             $METHOD_1
             $METHOD_2
             @${Names.VIEW_DELEGATE}
             $method
+            $others
         """.trimIndent()
 
         var body = wrap("public com.test.TestItemView.Delegate testItemView() {};")
@@ -131,6 +132,28 @@ class ItemsProcessorTest {
             .that(arrayListOf(itemViewFile(), adapterFile(body = body)))
             .processedWith(ItemsProcessor())
             .compilesWithoutError()
+
+        body = wrap("public abstract com.test.TestItemView.Delegate testItemView();",
+            others = "@${Names.VIEW_DELEGATE} public abstract com.test.TestItemView.Delegate testItemView2();")
+        Truth.assert_()
+            .about(JavaSourcesSubjectFactory.javaSources())
+            .that(arrayListOf(itemViewFile(), adapterFile(body = body)))
+            .processedWith(ItemsProcessor())
+            .failsToCompile()
+            .withErrorContaining("There are duplicate delegate interfaces in adapter")
+
+        body = wrap("public abstract com.test.TestItemView.Delegate testItemView();",
+            others = "@${Names.VIEW_DELEGATE} public abstract com.test.TestItemView.Delegate2 testItemView2();")
+        val itemViewOthers = """
+            @${Names.VIEW_DELEGATE_OF}(TestItemView.class)
+            interface Delegate2 extends ${Names.ITEM_VIEW_DELEGATE}<Callback> {}
+        """.trimIndent()
+        Truth.assert_()
+            .about(JavaSourcesSubjectFactory.javaSources())
+            .that(arrayListOf(itemViewFile(others = itemViewOthers), adapterFile(body = body)))
+            .processedWith(ItemsProcessor())
+            .failsToCompile()
+            .withErrorContaining("There are duplicate item views in adapter")
     }
 
     @Test
@@ -192,11 +215,12 @@ class ItemsProcessorTest {
 
     @Test
     fun selectorMethods() {
-        fun wrap(method: String) = """
+        fun wrap(method: String, others: String = "") = """
             $METHOD_1
             $METHOD_2
             @${Names.VIEW_SELECTOR}
             $method
+            $others
         """.trimIndent()
 
         var body = wrap("public abstract int viewTypeForString(int p, String d);")
@@ -229,6 +253,15 @@ class ItemsProcessorTest {
             .that(arrayListOf(itemViewFile(), adapterFile(body = body)))
             .processedWith(ItemsProcessor())
             .compilesWithoutError()
+
+        body = wrap("public int viewTypeForString(int p, String d) { return 0; };",
+            others = "@${Names.VIEW_SELECTOR} public int viewTypeForString2(int p, String d) { return 0; };")
+        Truth.assert_()
+            .about(JavaSourcesSubjectFactory.javaSources())
+            .that(arrayListOf(itemViewFile(), adapterFile(body = body)))
+            .processedWith(ItemsProcessor())
+            .failsToCompile()
+            .withErrorContaining("There are duplicate data types of selectors in adapter")
     }
 
     private fun adapterFile(
@@ -247,7 +280,8 @@ class ItemsProcessorTest {
     private fun itemViewFile(
         delegateAnnotation: String = "@${Names.VIEW_DELEGATE_OF}(TestItemView.class)",
         delegateType: String = "interface",
-        delegateExtends: String = "extends ${Names.ITEM_VIEW_DELEGATE}<Callback>"
+        delegateExtends: String = "extends ${Names.ITEM_VIEW_DELEGATE}<Callback>",
+        others: String = ""
     ) = JavaFileObjects.forSourceString(
         "com.test.TestItemView",
         """
@@ -265,6 +299,7 @@ class ItemsProcessorTest {
                 public interface Callback {
                     void onClick(String d);
                 }
+                $others
             }
         """.trimIndent()
     )

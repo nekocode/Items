@@ -146,7 +146,22 @@ class ItemsProcessor : AbstractProcessor() {
                 findSelectors(adapterElement)
             ) ?: continue@processing
 
-            // todo: validate all previous elements
+            // Validate duplicates
+            if (delegateElements.size != delegateElements.toMutableSet().size) {
+                printError("There are duplicate delegate interfaces in adapter: " +
+                        "${adapterElement.qualifiedName}")
+                continue
+            }
+            if (viewElements.size != viewElements.toMutableSet().size) {
+                printError("There are duplicate item views in adapter: " +
+                        "${adapterElement.qualifiedName}")
+                continue
+            }
+            if (selectorDataElements.size != selectorDataElements.toMutableSet().size) {
+                printError("There are duplicate data types of selectors in adapter: " +
+                        "${adapterElement.qualifiedName}")
+                continue
+            }
         }
 
         return true

@@ -133,8 +133,10 @@ class ItemsProcessorTest {
             .processedWith(ItemsProcessor())
             .compilesWithoutError()
 
-        body = wrap("public abstract com.test.TestItemView.Delegate testItemView();",
-            others = "@${Names.VIEW_DELEGATE} public abstract com.test.TestItemView.Delegate2 testItemView2();")
+        body = wrap(
+            "public abstract com.test.TestItemView.Delegate testItemView();",
+            others = "@${Names.VIEW_DELEGATE} public abstract com.test.TestItemView.Delegate2 testItemView2();"
+        )
         val itemViewOthers = """
             @${Names.VIEW_DELEGATE_OF}(TestItemView.class)
             interface Delegate2 extends ${Names.ITEM_VIEW_DELEGATE}<Callback> {}
@@ -206,15 +208,13 @@ class ItemsProcessorTest {
 
     @Test
     fun selectorMethods() {
-        fun wrap(method: String, others: String = "") = """
+        fun wrap(others: String) = """
             $METHOD_1
             $METHOD_2
-            @${Names.VIEW_SELECTOR}
-            $method
             $others
         """.trimIndent()
 
-        var body = wrap("public abstract int viewTypeForString(int p, String d);")
+        var body = wrap("@${Names.VIEW_SELECTOR} public abstract int viewTypeForString(int p, String d);")
         Truth.assert_()
             .about(JavaSourcesSubjectFactory.javaSources())
             .that(arrayListOf(itemViewFile(), adapterFile(body = body)))
@@ -222,7 +222,7 @@ class ItemsProcessorTest {
             .failsToCompile()
             .withErrorContaining("The selector method should be implemented")
 
-        body = wrap("public int viewTypeForString(int p) { return 0; };")
+        body = wrap("@${Names.VIEW_SELECTOR} public int viewTypeForString(int p) { return 0; };")
         Truth.assert_()
             .about(JavaSourcesSubjectFactory.javaSources())
             .that(arrayListOf(itemViewFile(), adapterFile(body = body)))
@@ -230,7 +230,7 @@ class ItemsProcessorTest {
             .failsToCompile()
             .withErrorContaining("Parameters of the selector method should be (int index, YourDataType data)")
 
-        body = wrap("public int viewTypeForString(String p, String d) { return 0; };")
+        body = wrap("@${Names.VIEW_SELECTOR} public int viewTypeForString(String p, String d) { return 0; };")
         Truth.assert_()
             .about(JavaSourcesSubjectFactory.javaSources())
             .that(arrayListOf(itemViewFile(), adapterFile(body = body)))
@@ -238,21 +238,40 @@ class ItemsProcessorTest {
             .failsToCompile()
             .withErrorContaining("Parameters of the selector method should be (int index, YourDataType data)")
 
-        body = wrap("public int viewTypeForString(int p, String d) { return 0; };")
+        body = wrap("@${Names.VIEW_SELECTOR} public int viewTypeForString(int p, String d) { return 0; };")
         Truth.assert_()
             .about(JavaSourcesSubjectFactory.javaSources())
             .that(arrayListOf(itemViewFile(), adapterFile(body = body)))
             .processedWith(ItemsProcessor())
             .compilesWithoutError()
 
-        body = wrap("public int viewTypeForString(int p, String d) { return 0; };",
-            others = "@${Names.VIEW_SELECTOR} public int viewTypeForString2(int p, String d) { return 0; };")
+        body = wrap(
+            "@${Names.VIEW_SELECTOR} public int viewTypeForString(int p, String d) { return 0; };" +
+                    "@${Names.VIEW_SELECTOR} public int viewTypeForString2(int p, String d) { return 0; };"
+        )
         Truth.assert_()
             .about(JavaSourcesSubjectFactory.javaSources())
             .that(arrayListOf(itemViewFile(), adapterFile(body = body)))
             .processedWith(ItemsProcessor())
             .failsToCompile()
             .withErrorContaining("There is a selector method having duplicate data type in adapter")
+
+        body = wrap(
+            "@${Names.VIEW_DELEGATE} public abstract com.test.TestItemView.Delegate testItemView();" +
+                    "@${Names.VIEW_DELEGATE} public abstract com.test.TestItemView2.Delegate testItemView2();"
+        )
+        Truth.assert_()
+            .about(JavaSourcesSubjectFactory.javaSources())
+            .that(
+                arrayListOf(
+                    itemViewFile(),
+                    itemViewFile(className = "TestItemView2"),
+                    adapterFile(body = body)
+                )
+            )
+            .processedWith(ItemsProcessor())
+            .failsToCompile()
+            .withErrorContaining("Missing view selector for duplicate data type")
     }
 
     private fun adapterFile(
@@ -269,15 +288,16 @@ class ItemsProcessorTest {
     )
 
     private fun itemViewFile(
-        delegateAnnotation: String = "@${Names.VIEW_DELEGATE_OF}(TestItemView.class)",
+        className: String = "TestItemView",
+        delegateAnnotation: String = "@${Names.VIEW_DELEGATE_OF}($className.class)",
         delegateType: String = "interface",
         delegateExtends: String = "extends ${Names.ITEM_VIEW_DELEGATE}<Callback>",
         others: String = ""
     ) = JavaFileObjects.forSourceString(
-        "com.test.TestItemView",
+        "com.test.$className",
         """
             package com.test;
-            public class TestItemView extends ${Names.ITEM_VIEW}<String, TestItemView.Callback> {
+            public class $className extends ${Names.ITEM_VIEW}<String, $className.Callback> {
                 @Override
                 public $VIEW onCreateItemView($LAYOUT_INFLATER i, $VIEW_GROUP p) {
                     return null;

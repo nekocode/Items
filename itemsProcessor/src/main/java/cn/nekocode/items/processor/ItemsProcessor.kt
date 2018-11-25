@@ -189,6 +189,15 @@ class ItemsProcessor : AbstractProcessor() {
                     continue@processing
                 }
             }
+
+            // Check if all item views having duplicate data type have corresponding selectors
+            for (data in duplicateData) {
+                if (!dataSelectors.containsKey(data)) {
+                    printError("Missing view selector for duplicate data type ${data.qualifiedName} in adapter:" +
+                            "${adapterElement.qualifiedName}")
+                    continue@processing
+                }
+            }
         }
 
         return true

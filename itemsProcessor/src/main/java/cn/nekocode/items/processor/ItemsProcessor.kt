@@ -198,6 +198,16 @@ class ItemsProcessor : AbstractProcessor() {
                     continue@processing
                 }
             }
+
+            // Generate code
+            AdapterGenerator(
+                processingEnv,
+                adapterElement,
+                delegates,
+                delegateIds,
+                dataDelegates,
+                dataSelectors
+            ).generate()
         }
 
         return true

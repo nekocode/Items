@@ -20,7 +20,6 @@ package cn.nekocode.items.processor
  * @author nekocode (nekocode.cn@gmail.com)
  */
 object Names {
-    const val RECYCLER_VIEW_ADAPTER = "android.support.v7.widget.RecyclerView.Adapter"
     const val ADAPTER = "cn.nekocode.items.annotation.Adapter"
     const val ITEM_ADAPTER = "cn.nekocode.items.ItemAdapter"
     const val VIEW_DELEGATE = "cn.nekocode.items.annotation.ViewDelegate"
@@ -31,4 +30,7 @@ object Names {
     const val ITEM_VIEW_SELECTOR = "cn.nekocode.items.ItemViewSelector"
     const val GET_DATA = "getData"
     const val GET_ITEM_COUNT = "getItemCount"
+
+    const val RECYCLER_VIEW_ADAPTER = "android.support.v7.widget.RecyclerView.Adapter"
+    const val NON_NULL = "android.support.annotation.NonNull"
 }

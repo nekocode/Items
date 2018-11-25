@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package cn.nekocode.items.processor
+package cn.nekocode.items.processor.util
 
 /**
  * See https://ashishchaudhary.in/better-error-handling-in-kotlin-with-either-type

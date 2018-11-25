@@ -16,6 +16,8 @@
 
 package cn.nekocode.items.processor
 
+import cn.nekocode.items.processor.util.Either
+import cn.nekocode.items.processor.util.Quadruple
 import javax.annotation.processing.AbstractProcessor
 import javax.annotation.processing.RoundEnvironment
 import javax.lang.model.SourceVersion
@@ -248,8 +250,11 @@ class ItemsProcessor : AbstractProcessor() {
             }
         }
 
-        return Either.Success(Quadruple(
-            delegateElements, viewElements, dataElements, callbackElements))
+        return Either.Success(
+            Quadruple(
+                delegateElements, viewElements, dataElements, callbackElements
+            )
+        )
     }
 
     /**

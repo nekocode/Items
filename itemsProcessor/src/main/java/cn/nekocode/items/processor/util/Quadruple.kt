@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package cn.nekocode.items.processor
+package cn.nekocode.items.processor.util
 
 /**
  * @author nekocode (nekocode.cn@gmail.com)

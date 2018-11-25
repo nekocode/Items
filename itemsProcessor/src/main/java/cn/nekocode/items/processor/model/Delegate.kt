@@ -14,16 +14,18 @@
  * limitations under the License.
  */
 
-package cn.nekocode.items.processor.util
+package cn.nekocode.items.processor.model
+
+import javax.lang.model.element.ExecutableElement
+import javax.lang.model.element.TypeElement
 
 /**
  * @author nekocode (nekocode.cn@gmail.com)
  */
-data class Quadruple<out A, out B, out C, out D>(
-    val first: A,
-    val second: B,
-    val third: C,
-    val fourth: D
-) {
-    override fun toString(): String = "($first, $second, $third, $fourth)"
-}
+data class Delegate(
+    val method: ExecutableElement,
+    val delegate: TypeElement,
+    val view: TypeElement,
+    val data: TypeElement,
+    val callback: TypeElement
+)

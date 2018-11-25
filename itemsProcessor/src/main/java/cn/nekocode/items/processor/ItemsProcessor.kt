@@ -16,8 +16,9 @@
 
 package cn.nekocode.items.processor
 
+import cn.nekocode.items.processor.model.Delegate
+import cn.nekocode.items.processor.model.Selector
 import cn.nekocode.items.processor.util.Either
-import cn.nekocode.items.processor.util.Quadruple
 import javax.annotation.processing.AbstractProcessor
 import javax.annotation.processing.RoundEnvironment
 import javax.lang.model.SourceVersion
@@ -137,58 +138,55 @@ class ItemsProcessor : AbstractProcessor() {
             ) ?: continue@processing
 
             // Find all delegate interfaces
-            val (delegateElements, viewElements, dataElements, callbackElements) = getOrPrintError(
+            val delegates = getOrPrintError(
                 findDelegates(adapterElement, delegateMethodElements)
             ) ?: continue@processing
 
             // Find all selector methods
-            val (selectorMethodElements, selectorDataElements) = getOrPrintError(
+            val selectors = getOrPrintError(
                 findSelectors(adapterElement)
             ) ?: continue@processing
 
-            // Create view-id map
-            var viewId = 0
-            val viewIds = HashMap<TypeElement, Int>()
-            for (element in viewElements) {
-                if (element !in viewIds) {
-                    viewIds[element] = viewId ++
+            // Create delegate-id map
+            var id = 0
+            val delegateIds = HashMap<Delegate, Int>()
+            val views = HashSet<TypeElement>()
+            for (delegate in delegates) {
+                val view = delegate.view
+                if (view !in views) {
+                    delegateIds[delegate] = id ++
+                    views.add(view)
                 } else {
-                    printError("There is a duplicate item view ${element.qualifiedName} in adapter: " +
+                    printError("There is a duplicate item view ${view.qualifiedName} in adapter: " +
                             "${adapterElement.qualifiedName}")
-                    continue
+                    continue@processing
                 }
             }
 
-            // Create data-viewId map
-            val dataViewIds = HashMap<TypeElement, Int?>()
+            // Create data-delegate map
+            val dataDelegates = HashMap<TypeElement, Delegate?>()
             val duplicateData = HashSet<TypeElement>()
-            var i1 = viewElements.listIterator()
-            var i2 = dataElements.listIterator()
-            while (i1.hasNext() and i2.hasNext()) {
-                val viewElement = i1.next()
-                val dataElement = i2.next()
-                if (dataElement !in dataViewIds) {
-                    dataViewIds[dataElement] = viewIds[viewElement]!!
+            for (delegate in delegates) {
+                val dataElement = delegate.data
+                if (dataElement !in dataDelegates) {
+                    dataDelegates[dataElement] = delegate
                 } else {
                     // If there is a duplicate data type, record it
-                    dataViewIds[dataElement] = null
+                    dataDelegates[dataElement] = null
                     duplicateData.add(dataElement)
                 }
             }
 
             // Create data-selector map
-            val dataSelectors = HashMap<TypeElement, ExecutableElement>()
-            i1 = selectorDataElements.listIterator()
-            val i3 = selectorMethodElements.listIterator()
-            while (i1.hasNext() and i3.hasNext()) {
-                val dataElement = i1.next()
-                val selectorMethodElement = i3.next()
+            val dataSelectors = HashMap<TypeElement, Selector>()
+            for (selector in selectors) {
+                val dataElement = selector.data
                 if (dataElement !in dataSelectors) {
-                    dataSelectors[dataElement] = selectorMethodElement
+                    dataSelectors[dataElement] = selector
                 } else {
                     printError("There is a selector method having duplicate data type in adapter: " +
-                            "${adapterElement.qualifiedName}#${selectorMethodElement.simpleName}")
-                    continue
+                            "${adapterElement.qualifiedName}#${selector.method.simpleName}")
+                    continue@processing
                 }
             }
         }
@@ -239,13 +237,10 @@ class ItemsProcessor : AbstractProcessor() {
     private fun findDelegates(
         adapterElement: TypeElement,
         methodElements: List<ExecutableElement>
-    ): Either<Quadruple<List<TypeElement>, List<TypeElement>, List<TypeElement>, List<TypeElement>>> {
+    ): Either<List<Delegate>> {
         val viewDelegateOfElement = elements().getTypeElement(Names.VIEW_DELEGATE_OF)
         val itemViewDelegateElement = elements().getTypeElement(Names.ITEM_VIEW_DELEGATE)
-        val delegateElements = ArrayList<TypeElement>()
-        val viewElements = ArrayList<TypeElement>()
-        val dataElements = ArrayList<TypeElement>()
-        val callbackElements = ArrayList<TypeElement>()
+        val delegates = ArrayList<Delegate>()
 
         for (element in methodElements) {
             val delegateElement = element.returnType.asElement() as TypeElement
@@ -272,33 +267,28 @@ class ItemsProcessor : AbstractProcessor() {
                             "${delegateElement.qualifiedName}"
                 )
 
-            // Add delegate interface
-            delegateElements.add(delegateElement)
-
-            // Add item view
+            // Extract types
             val viewElement = (viewDelegateOfAnnotation.getValue("value") as TypeMirror)
                 .asElement() as TypeElement
-            viewElements.add(viewElement)
-
             val itemViewGenericTypes = (viewElement.superclass as DeclaredType).typeArguments
-            // Add data type
-            dataElements.add(itemViewGenericTypes[0].asElement() as TypeElement)
-            // Add callback
+            val dataElement = itemViewGenericTypes[0].asElement() as TypeElement
             val callbackElement = itemViewGenericTypes[1].asElement() as TypeElement
-            callbackElements.add(callbackElement)
 
             // Check if callback types matches
             if (callbackElement != (delegateSuperType as DeclaredType).typeArguments[0].asElement()) {
                 return Either.Error("Callback types of delegate interface and item view unmatched: " +
                         "${delegateElement.qualifiedName}")
             }
+
+            delegates.add(
+                Delegate(
+                    element, delegateElement,
+                    viewElement, dataElement, callbackElement
+                )
+            )
         }
 
-        return Either.Success(
-            Quadruple(
-                delegateElements, viewElements, dataElements, callbackElements
-            )
-        )
+        return Either.Success(delegates)
     }
 
     /**
@@ -307,10 +297,10 @@ class ItemsProcessor : AbstractProcessor() {
      */
     private fun findSelectors(
         adapterElement: TypeElement
-    ): Either<Pair<List<ExecutableElement>, List<TypeElement>>> {
+    ): Either<List<Selector>> {
         val viewSelectorElement = elements().getTypeElement(Names.VIEW_SELECTOR)
         val methodElements = ArrayList<ExecutableElement>()
-        val dataElements = ArrayList<TypeElement>()
+        val selectors = ArrayList<Selector>()
 
         // Find selector methods
         for (element in adapterElement.enclosedElements) {
@@ -340,10 +330,11 @@ class ItemsProcessor : AbstractProcessor() {
                         "${adapterElement.qualifiedName}#${element.simpleName}")
             }
 
-            dataElements.add(parameters[1].asType().asElement() as TypeElement)
+            val dataElement = parameters[1].asType().asElement() as TypeElement
+            selectors.add(Selector(element, dataElement))
         }
 
-        return Either.Success(Pair(methodElements, dataElements))
+        return Either.Success(selectors)
     }
 
     private fun elements() = processingEnv.elementUtils

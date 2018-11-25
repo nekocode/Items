@@ -146,21 +146,50 @@ class ItemsProcessor : AbstractProcessor() {
                 findSelectors(adapterElement)
             ) ?: continue@processing
 
-            // Validate duplicates
-            if (delegateElements.size != delegateElements.toMutableSet().size) {
-                printError("There are duplicate delegate interfaces in adapter: " +
-                        "${adapterElement.qualifiedName}")
-                continue
+            // Create view-id map
+            var viewId = 0
+            val viewIds = HashMap<TypeElement, Int>()
+            for (element in viewElements) {
+                if (element !in viewIds) {
+                    viewIds[element] = viewId ++
+                } else {
+                    printError("There is a duplicate item view ${element.qualifiedName} in adapter: " +
+                            "${adapterElement.qualifiedName}")
+                    continue
+                }
             }
-            if (viewElements.size != viewElements.toMutableSet().size) {
-                printError("There are duplicate item views in adapter: " +
-                        "${adapterElement.qualifiedName}")
-                continue
+
+            // Create data-viewId map
+            val dataViewIds = HashMap<TypeElement, Int?>()
+            val duplicateData = HashSet<TypeElement>()
+            var i1 = viewElements.listIterator()
+            var i2 = dataElements.listIterator()
+            while (i1.hasNext() and i2.hasNext()) {
+                val viewElement = i1.next()
+                val dataElement = i2.next()
+                if (dataElement !in dataViewIds) {
+                    dataViewIds[dataElement] = viewIds[viewElement]!!
+                } else {
+                    // If there is a duplicate data type, record it
+                    dataViewIds[dataElement] = null
+                    duplicateData.add(dataElement)
+                }
             }
-            if (selectorDataElements.size != selectorDataElements.toMutableSet().size) {
-                printError("There are duplicate data types of selectors in adapter: " +
-                        "${adapterElement.qualifiedName}")
-                continue
+
+            // Create data-selector map
+            val dataSelectors = HashMap<TypeElement, ExecutableElement>()
+            i1 = selectorDataElements.listIterator()
+            val i3 = selectorMethodElements.listIterator()
+            while (i1.hasNext() and i3.hasNext()) {
+                val dataElement = i1.next()
+                val selectorMethodElement = i3.next()
+                if (dataElement !in dataSelectors) {
+                    dataSelectors[dataElement] = selectorMethodElement
+                } else {
+                    printError("There is a selector method having duplicate data type in adapter: " +
+                            "${adapterElement.qualifiedName}#${selectorMethodElement.simpleName}")
+                    continue
+                }
             }
         }
 

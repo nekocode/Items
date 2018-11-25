@@ -134,15 +134,6 @@ class ItemsProcessorTest {
             .compilesWithoutError()
 
         body = wrap("public abstract com.test.TestItemView.Delegate testItemView();",
-            others = "@${Names.VIEW_DELEGATE} public abstract com.test.TestItemView.Delegate testItemView2();")
-        Truth.assert_()
-            .about(JavaSourcesSubjectFactory.javaSources())
-            .that(arrayListOf(itemViewFile(), adapterFile(body = body)))
-            .processedWith(ItemsProcessor())
-            .failsToCompile()
-            .withErrorContaining("There are duplicate delegate interfaces in adapter")
-
-        body = wrap("public abstract com.test.TestItemView.Delegate testItemView();",
             others = "@${Names.VIEW_DELEGATE} public abstract com.test.TestItemView.Delegate2 testItemView2();")
         val itemViewOthers = """
             @${Names.VIEW_DELEGATE_OF}(TestItemView.class)
@@ -153,7 +144,7 @@ class ItemsProcessorTest {
             .that(arrayListOf(itemViewFile(others = itemViewOthers), adapterFile(body = body)))
             .processedWith(ItemsProcessor())
             .failsToCompile()
-            .withErrorContaining("There are duplicate item views in adapter")
+            .withErrorContaining("There is a duplicate item view")
     }
 
     @Test
@@ -261,7 +252,7 @@ class ItemsProcessorTest {
             .that(arrayListOf(itemViewFile(), adapterFile(body = body)))
             .processedWith(ItemsProcessor())
             .failsToCompile()
-            .withErrorContaining("There are duplicate data types of selectors in adapter")
+            .withErrorContaining("There is a selector method having duplicate data type in adapter")
     }
 
     private fun adapterFile(

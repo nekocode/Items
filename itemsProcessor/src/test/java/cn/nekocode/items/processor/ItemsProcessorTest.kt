@@ -71,6 +71,19 @@ class ItemsProcessorTest {
     }
 
     @Test
+    fun constructor() {
+        val body = "public TestAdapter(int i) {}"
+        Truth.assert_()
+            .about(JavaSourcesSubjectFactory.javaSources())
+            .that(arrayListOf(adapterFile(body = body)))
+            .processedWith(ItemsProcessor())
+            .failsToCompile()
+            .withErrorContaining(
+                "The adapter should not have constructor having parameters"
+            )
+    }
+
+    @Test
     fun notOverrideMethods() {
         Truth.assert_()
             .about(JavaSourcesSubjectFactory.javaSources())

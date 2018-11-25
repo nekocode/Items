@@ -72,6 +72,17 @@ class ItemsProcessor : AbstractProcessor() {
                 continue
             }
 
+            // Check constructor
+            for (element in adapterElement.enclosedElements) {
+                if (element is ExecutableElement &&
+                    element.simpleName.contentEquals("<init>") &&
+                    element.parameters.size > 0) {
+                    printError("The adapter should not have constructor having parameters: " +
+                            "${adapterElement.qualifiedName}")
+                    continue@processing
+                }
+            }
+
             // Get the method element of getData()
             var foundElement: ExecutableElement? = null
             for (element in itemAdapterElement.enclosedElements) {

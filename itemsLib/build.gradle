@@ -10,7 +10,7 @@ dependencies {
     /*
       Aars
      */
-    aarCompileOnly "com.android.support:recyclerview-v7:27.1.1"
+    compileOnlyAar "com.android.support:recyclerview-v7:27.1.1"
 }
 
 // build a jar with source files

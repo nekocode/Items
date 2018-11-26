@@ -31,5 +31,3 @@ task sourcesJar(type: Jar) {
 artifacts {
     archives sourcesJar
 }
-
-group="com.github.nekocode"

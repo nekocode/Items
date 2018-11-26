@@ -8,7 +8,7 @@ buildscript {
     dependencies {
         classpath "com.android.tools.build:gradle:3.2.1"
         classpath "org.jetbrains.kotlin:kotlin-gradle-plugin:$kotlin_version"
-        classpath "com.github.nekocode:Gradle-Import-Aar:0.5"
+        classpath "com.github.nekocode:GradleImportAar:0.5"
         classpath "com.github.dcendents:android-maven-gradle-plugin:1.5"
     }
 }

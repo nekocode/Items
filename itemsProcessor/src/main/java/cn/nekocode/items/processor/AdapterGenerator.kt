@@ -80,7 +80,7 @@ class AdapterGenerator(
         return new ${delegate.delegate.qualifiedName}() {
             @Override
             public int viewType() {
-                return 0;
+                return ${delegateIds[delegate]};
             }
 
             @Override

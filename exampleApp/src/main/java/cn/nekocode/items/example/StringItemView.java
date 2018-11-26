@@ -40,7 +40,11 @@ public class StringItemView extends ItemView<String, StringItemView.Callback> {
         final View itemView = inflater.inflate(R.layout.item_string, parent, false);
         textView = itemView.findViewById(R.id.textView);
         button = itemView.findViewById(R.id.button);
-        button.setOnClickListener(v -> getCallback().onButtonClick(getData()));
+        button.setOnClickListener(v -> {
+            if (getCallback() != null) {
+                getCallback().onButtonClick(getData());
+            }
+        });
         return itemView;
     }
 

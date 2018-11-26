@@ -41,7 +41,9 @@ public class FooterItemView extends ItemView<HeaderOrFooterData, FooterItemView.
         checkBox = itemView.findViewById(R.id.checkBox);
         checkBox.setOnCheckedChangeListener((compoundButton, b) -> {
             getData().setChecked(b);
-            getCallback().onCheckedChanged(getData());
+            if (getCallback() != null) {
+                getCallback().onCheckedChanged(getData());
+            }
         });
         return itemView;
     }

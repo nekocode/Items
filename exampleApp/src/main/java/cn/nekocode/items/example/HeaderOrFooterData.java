@@ -24,6 +24,17 @@ public class HeaderOrFooterData {
     private boolean isHeader;
     private boolean isChecked;
 
+    public HeaderOrFooterData(String text) {
+        this.text = text;
+        this.isHeader = true;
+    }
+
+    public HeaderOrFooterData(String text, boolean isChecked) {
+        this.text = text;
+        this.isHeader = false;
+        this.isChecked = isChecked;
+    }
+
     public String getText() {
         return text;
     }

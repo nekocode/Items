@@ -30,7 +30,12 @@ class KtFooterItemView : ItemView<HeaderOrFooterData, KtFooterItemView.Callback>
     @ViewDelegateOf(KtFooterItemView::class)
     interface Delegate : ItemViewDelegate<Callback>
 
-    interface Callback {
-        fun onCheckedChanged(data: HeaderOrFooterData)
+    open class Callback {
+        open fun onCheckedChanged(data: HeaderOrFooterData) {
+            // do nothing
+        }
+        open fun otherMethod() {
+            // do nothing
+        }
     }
 }

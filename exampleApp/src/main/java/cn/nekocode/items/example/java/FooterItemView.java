@@ -59,7 +59,12 @@ public class FooterItemView extends ItemView<HeaderOrFooterData, FooterItemView.
     public interface Delegate extends ItemViewDelegate<Callback> {
     }
 
-    public interface Callback {
-        void onCheckedChanged(HeaderOrFooterData data);
+    public static class Callback {
+        public void onCheckedChanged(HeaderOrFooterData data) {
+            // do nothing
+        }
+        public void otherMethod() {
+            // do nothing
+        }
     }
 }

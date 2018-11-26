@@ -32,7 +32,7 @@ class MainActivity : AppCompatActivity() {
                 Toast.makeText(this@MainActivity, data, Toast.LENGTH_SHORT).show()
             }
         })
-        adapter.footerView().setCallback(object : KtFooterItemView.Callback {
+        adapter.footerView().setCallback(object : KtFooterItemView.Callback() {
             override fun onCheckedChanged(data: HeaderOrFooterData) {
                 Toast.makeText(this@MainActivity, data.isChecked.toString(), Toast.LENGTH_SHORT).show()
             }

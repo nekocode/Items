@@ -19,6 +19,32 @@ package cn.nekocode.items.example;
 /**
  * @author nekocode (nekocode.cn@gmail.com)
  */
-public class TestData {
-    public String text = "Test";
+public class HeaderOrFooterData {
+    private String text;
+    private boolean isHeader;
+    private boolean isChecked;
+
+    public String getText() {
+        return text;
+    }
+
+    public void setText(String text) {
+        this.text = text;
+    }
+
+    public boolean isHeader() {
+        return isHeader;
+    }
+
+    public void setHeader(boolean header) {
+        isHeader = header;
+    }
+
+    public boolean isChecked() {
+        return isChecked;
+    }
+
+    public void setChecked(boolean checked) {
+        isChecked = checked;
+    }
 }

@@ -48,10 +48,22 @@ public abstract class TestAdapter extends ItemAdapter {
 
     @NonNull
     @ViewDelegate
-    public abstract TestItemView.Delegate testItemView();
+    public abstract HeaderItemView.Delegate headerView();
+
+    @NonNull
+    @ViewDelegate
+    public abstract StringItemView.Delegate stringView();
+
+    @NonNull
+    @ViewDelegate
+    public abstract FooterItemView.Delegate footerView();
 
     @ViewSelector
-    public int viewTypeForTestData(int position, @NonNull TestData data) {
-        return testItemView().viewType();
+    public int viewForHeaderOrFooter(int position, @NonNull HeaderOrFooterData data) {
+        if (data.isHeader()) {
+            return headerView().viewType();
+        } else {
+            return footerView().viewType();
+        }
     }
 }

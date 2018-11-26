@@ -20,9 +20,8 @@ import android.support.annotation.NonNull;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.Button;
+import android.widget.CheckBox;
 import android.widget.TextView;
-
 import cn.nekocode.items.ItemView;
 import cn.nekocode.items.ItemViewDelegate;
 import cn.nekocode.items.annotation.ViewDelegateOf;
@@ -30,30 +29,34 @@ import cn.nekocode.items.annotation.ViewDelegateOf;
 /**
  * @author nekocode (nekocode.cn@gmail.com)
  */
-public class TestItemView extends ItemView<TestData, TestItemView.Callback> {
+public class FooterItemView extends ItemView<HeaderOrFooterData, FooterItemView.Callback> {
     private TextView textView;
-    private Button button;
+    private CheckBox checkBox;
 
     @NonNull
     @Override
     public View onCreateItemView(@NonNull LayoutInflater inflater, @NonNull ViewGroup parent) {
-        final View itemView = inflater.inflate(R.layout.item_test, parent, false);
+        final View itemView = inflater.inflate(R.layout.item_footer, parent, false);
         textView = itemView.findViewById(R.id.textView);
-        button = itemView.findViewById(R.id.button);
-        button.setOnClickListener(v -> getCallback().onButtonClick(getData()));
+        checkBox = itemView.findViewById(R.id.checkBox);
+        checkBox.setOnCheckedChangeListener((compoundButton, b) -> {
+            getData().setChecked(b);
+            getCallback().onCheckedChanged(getData());
+        });
         return itemView;
     }
 
     @Override
-    public void onBindData(@NonNull TestData data) {
-        textView.setText(data.text);
+    public void onBindData(@NonNull HeaderOrFooterData data) {
+        textView.setText(data.getText());
+        checkBox.setChecked(data.isChecked());
     }
 
-    @ViewDelegateOf(TestItemView.class)
+    @ViewDelegateOf(FooterItemView.class)
     interface Delegate extends ItemViewDelegate<Callback> {
     }
 
     public interface Callback {
-        void onButtonClick(@NonNull TestData data);
+        void onCheckedChanged(HeaderOrFooterData data);
     }
 }

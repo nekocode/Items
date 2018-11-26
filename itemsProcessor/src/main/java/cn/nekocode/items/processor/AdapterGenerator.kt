@@ -33,6 +33,10 @@ class AdapterGenerator(
     private val dataSelectors: Map<TypeElement, Selector>
 ) {
 
+    companion object {
+        const val CLASSNAME_POSTFIX = "_Impl"
+    }
+
     fun generate() {
         val adapterName = adapter.qualifiedName
         val packageName = adapterName.substring(0, adapterName.length - adapter.simpleName.length - 1)
@@ -127,7 +131,7 @@ import java.util.HashMap;
 
 $importText
 
-public class ${adapter.simpleName}Impl extends ${adapter.simpleName} {
+public class ${adapter.simpleName}$CLASSNAME_POSTFIX extends ${adapter.simpleName} {
     private final HashMap<Class, Integer> viewTypes = new HashMap<>();
     private final HashMap<Class, ${itemViewSelector.simpleName}> selectors = new HashMap<>();
     {
@@ -175,7 +179,7 @@ $holderSwitchCases
         """.trimStartEndBlanks()
 
         // Write code of class to file
-        env.filer.createSourceFile("${adapter.qualifiedName}Impl").openWriter().use {
+        env.filer.createSourceFile("${adapter.qualifiedName}$CLASSNAME_POSTFIX").openWriter().use {
             it.write(code)
         }
     }

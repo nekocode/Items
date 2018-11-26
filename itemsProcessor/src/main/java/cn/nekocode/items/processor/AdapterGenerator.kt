@@ -46,20 +46,6 @@ class AdapterGenerator(
         val itemView = element(Names.ITEM_VIEW)
         val itemViewSelector = element(Names.ITEM_VIEW_SELECTOR)
 
-        // Code of imports
-        val imports = HashSet<String>()
-        for (delegate in delegates) {
-            imports.add("import ${delegate.delegate.qualifiedName};")
-            imports.add("import ${delegate.view.qualifiedName};")
-            imports.add("import ${delegate.data.qualifiedName};")
-            imports.add("import ${delegate.callback.qualifiedName};")
-        }
-        for ((data, _) in dataSelectors) {
-            imports.add("import ${data.qualifiedName};")
-        }
-        var importText = ""
-        imports.forEach { importText += "$it\n" }
-
         // Code of map initializing
         var mapInitializing = ""
         for ((data, delegate) in dataDelegates) {
@@ -67,16 +53,16 @@ class AdapterGenerator(
                 continue
             }
             val id = delegateIds[delegate]!!
-            mapInitializing += "${indent(2)}viewTypes.put(${data.simpleName}.class, $id);\n"
+            mapInitializing += "${indent(2)}viewTypes.put(${data.qualifiedName}.class, $id);\n"
         }
         if (mapInitializing != "") {
             mapInitializing += "\n"
         }
         for ((data, selector) in dataSelectors) {
             mapInitializing += """
-        selectors.put(${data.simpleName}.class, new ${itemViewSelector.simpleName}<${data.simpleName}>() {
+        selectors.put(${data.qualifiedName}.class, new ${itemViewSelector.simpleName}<${data.qualifiedName}>() {
            @Override
-            public int select(int position, $nonNull ${data.simpleName} data) {
+            public int select(int position, $nonNull ${data.qualifiedName} data) {
                 return ${selector.method.simpleName}(position, data);
             }
         });
@@ -90,15 +76,15 @@ class AdapterGenerator(
             delegateMethods += """
     $nonNull
     @Override
-    public ${delegate.delegate.simpleName} ${delegate.method.simpleName}() {
-        return new ${delegate.delegate.simpleName}() {
+    public ${delegate.delegate.qualifiedName} ${delegate.method.simpleName}() {
+        return new ${delegate.delegate.qualifiedName}() {
             @Override
             public int viewType() {
                 return 0;
             }
 
             @Override
-            public void setCallback(${delegate.callback.simpleName} callback) {
+            public void setCallback(${delegate.callback.qualifiedName} callback) {
                 callbacks.put(viewType(), callback);
             }
         };
@@ -112,7 +98,7 @@ class AdapterGenerator(
             val id = delegateIds[delegate]!!
             holderSwitchCases += """
             case $id: {
-                holder = new ${delegate.view.simpleName}().onCreateViewHolder(this, viewGroup, viewType);
+                holder = new ${delegate.view.qualifiedName}().onCreateViewHolder(this, viewGroup, viewType);
                 break;
             }
             """.trimStartEndBlanks()
@@ -128,8 +114,6 @@ import android.view.ViewGroup;
 import ${itemView.qualifiedName};
 import ${itemViewSelector.qualifiedName};
 import java.util.HashMap;
-
-$importText
 
 public class ${adapter.simpleName}$CLASSNAME_POSTFIX extends ${adapter.simpleName} {
     private final HashMap<Class, Integer> viewTypes = new HashMap<>();

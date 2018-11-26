@@ -64,6 +64,11 @@ public abstract class ItemView<T, C> {
         return data;
     }
 
+    @Nullable
+    public View getView() {
+        return holder.itemView;
+    }
+
     @NonNull
     public RecyclerView.ViewHolder getViewHolder() {
         return holder;

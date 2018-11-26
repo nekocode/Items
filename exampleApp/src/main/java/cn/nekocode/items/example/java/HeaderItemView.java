@@ -14,50 +14,41 @@
  * limitations under the License.
  */
 
-package cn.nekocode.items.example;
+package cn.nekocode.items.example.java;
 
 import android.support.annotation.NonNull;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.Button;
 import android.widget.TextView;
-
 import cn.nekocode.items.ItemView;
 import cn.nekocode.items.ItemViewDelegate;
 import cn.nekocode.items.annotation.ViewDelegateOf;
+import cn.nekocode.items.example.R;
 
 /**
  * @author nekocode (nekocode.cn@gmail.com)
  */
-public class StringItemView extends ItemView<String, StringItemView.Callback> {
+public class HeaderItemView extends ItemView<HeaderOrFooterData, HeaderItemView.Callback> {
     private TextView textView;
-    private Button button;
 
     @NonNull
     @Override
     public View onCreateItemView(@NonNull LayoutInflater inflater, @NonNull ViewGroup parent) {
-        final View itemView = inflater.inflate(R.layout.item_string, parent, false);
+        final View itemView = inflater.inflate(R.layout.item_header, parent, false);
         textView = itemView.findViewById(R.id.textView);
-        button = itemView.findViewById(R.id.button);
-        button.setOnClickListener(v -> {
-            if (getCallback() != null) {
-                getCallback().onButtonClick(getData());
-            }
-        });
         return itemView;
     }
 
     @Override
-    public void onBindData(@NonNull String data) {
-        textView.setText(data);
+    public void onBindData(@NonNull HeaderOrFooterData data) {
+        textView.setText(data.getText());
     }
 
-    @ViewDelegateOf(StringItemView.class)
-    interface Delegate extends ItemViewDelegate<Callback> {
+    @ViewDelegateOf(HeaderItemView.class)
+    public interface Delegate extends ItemViewDelegate<Callback> {
     }
 
     public interface Callback {
-        void onButtonClick(@NonNull String data);
     }
 }

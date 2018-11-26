@@ -14,40 +14,52 @@
  * limitations under the License.
  */
 
-package cn.nekocode.items.example;
+package cn.nekocode.items.example.java;
 
 import android.support.annotation.NonNull;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.CheckBox;
 import android.widget.TextView;
 import cn.nekocode.items.ItemView;
 import cn.nekocode.items.ItemViewDelegate;
 import cn.nekocode.items.annotation.ViewDelegateOf;
+import cn.nekocode.items.example.R;
 
 /**
  * @author nekocode (nekocode.cn@gmail.com)
  */
-public class HeaderItemView extends ItemView<HeaderOrFooterData, HeaderItemView.Callback> {
+public class FooterItemView extends ItemView<HeaderOrFooterData, FooterItemView.Callback> {
     private TextView textView;
+    private CheckBox checkBox;
 
     @NonNull
     @Override
     public View onCreateItemView(@NonNull LayoutInflater inflater, @NonNull ViewGroup parent) {
-        final View itemView = inflater.inflate(R.layout.item_header, parent, false);
+        final View itemView = inflater.inflate(R.layout.item_footer, parent, false);
         textView = itemView.findViewById(R.id.textView);
+        checkBox = itemView.findViewById(R.id.checkBox);
+        checkBox.setOnCheckedChangeListener((compoundButton, b) -> {
+            getData().setChecked(b);
+            if (getCallback() != null) {
+                getCallback().onCheckedChanged(getData());
+            }
+        });
         return itemView;
     }
 
     @Override
     public void onBindData(@NonNull HeaderOrFooterData data) {
         textView.setText(data.getText());
+        checkBox.setChecked(data.isChecked());
     }
 
-    @ViewDelegateOf(HeaderItemView.class)
-    interface Delegate extends ItemViewDelegate<Callback> {
+    @ViewDelegateOf(FooterItemView.class)
+    public interface Delegate extends ItemViewDelegate<Callback> {
     }
 
     public interface Callback {
+        void onCheckedChanged(HeaderOrFooterData data);
     }
 }

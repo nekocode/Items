@@ -14,51 +14,51 @@
  * limitations under the License.
  */
 
-package cn.nekocode.items.example;
+package cn.nekocode.items.example.java;
 
 import android.support.annotation.NonNull;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.CheckBox;
+import android.widget.Button;
 import android.widget.TextView;
+
 import cn.nekocode.items.ItemView;
 import cn.nekocode.items.ItemViewDelegate;
 import cn.nekocode.items.annotation.ViewDelegateOf;
+import cn.nekocode.items.example.R;
 
 /**
  * @author nekocode (nekocode.cn@gmail.com)
  */
-public class FooterItemView extends ItemView<HeaderOrFooterData, FooterItemView.Callback> {
+public class StringItemView extends ItemView<String, StringItemView.Callback> {
     private TextView textView;
-    private CheckBox checkBox;
+    private Button button;
 
     @NonNull
     @Override
     public View onCreateItemView(@NonNull LayoutInflater inflater, @NonNull ViewGroup parent) {
-        final View itemView = inflater.inflate(R.layout.item_footer, parent, false);
+        final View itemView = inflater.inflate(R.layout.item_string, parent, false);
         textView = itemView.findViewById(R.id.textView);
-        checkBox = itemView.findViewById(R.id.checkBox);
-        checkBox.setOnCheckedChangeListener((compoundButton, b) -> {
-            getData().setChecked(b);
+        button = itemView.findViewById(R.id.button);
+        button.setOnClickListener(v -> {
             if (getCallback() != null) {
-                getCallback().onCheckedChanged(getData());
+                getCallback().onButtonClick(getData());
             }
         });
         return itemView;
     }
 
     @Override
-    public void onBindData(@NonNull HeaderOrFooterData data) {
-        textView.setText(data.getText());
-        checkBox.setChecked(data.isChecked());
+    public void onBindData(@NonNull String data) {
+        textView.setText(data);
     }
 
-    @ViewDelegateOf(FooterItemView.class)
-    interface Delegate extends ItemViewDelegate<Callback> {
+    @ViewDelegateOf(StringItemView.class)
+    public interface Delegate extends ItemViewDelegate<Callback> {
     }
 
     public interface Callback {
-        void onCheckedChanged(HeaderOrFooterData data);
+        void onButtonClick(@NonNull String data);
     }
 }

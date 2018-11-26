@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package cn.nekocode.items.example;
+package cn.nekocode.items.example.java;
 
 import android.support.annotation.NonNull;
 import cn.nekocode.items.ItemAdapter;

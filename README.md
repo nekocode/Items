@@ -21,7 +21,7 @@ dependencies {
 
 ### 1. Define item view separately.
 
-Take attention to the parameters of class's generic type, the first parameter is the type of data and the second is the type of this view's event callback (can be interface or class).
+Take attention to the parameters of class's generic type. The first parameter is the type of data and the second is the type of this view's event callback (can be interface or class).
 
 ```java
 public class StringItemView extends ItemView<String, StringItemView.Callback> {
@@ -57,9 +57,9 @@ public class StringItemView extends ItemView<String, StringItemView.Callback> {
 }
 ```
 
-One important thing is that we need to define an empty interface extending `ItemViewDelegate` for every item view. Such as the `Delegate` interface in above code. And it should be annotated with `@ViewDelegateOf`, the parameter of annotation should be the class of target item view.
+One important thing is that we need to define an empty interface extending `ItemViewDelegate` for every item view, such as the `Delegate` interface in above code. And it should be annotated with `@ViewDelegateOf` whose parameter should be the class of target item view.
 
-The `ItemViewDelegate` is provided by this library. It's the bridge between adapter and item view and it only has two methods:
+The `ItemViewDelegate` is provided by this library. It's the bridge between adapter and item view, and it only has two methods:
 
 ```java
 public interface ItemViewDelegate<C> {
@@ -70,11 +70,11 @@ public interface ItemViewDelegate<C> {
 
 The `viewType()` method returns a view type id (generated in *build-time*) of this item view. And you can use it to select item view type for one specified data type (see the chapter [「One to many data-view-binding」](#one-to-many-data-view-binding) for more details).
 
-The `setCallback()` method can set an event callback for this item view. Then you can call `getCallback()` in the item view to get the callback, and invoke methods of it to tell caller that some view event are triggered.
+The `setCallback()` method can set an event callback for this item view. You can call `getCallback()` in the item view to get callback, and then invoke methods of the callback to tell caller that some view event are triggered.
 
 ### 2. Define adapter.
 
-Afater we define our item views. For using them in a `RecyclerView`, we need to define a `ItemsAdapter` to assemble them firstly. It must be abstract and annotated with `@Adapter`:
+Now we need to define a `ItemsAdapter` to assemble the item views to `RecyclerView`. It must be abstract and annotated with `@Adapter`:
 
 ```java
 @Adapter

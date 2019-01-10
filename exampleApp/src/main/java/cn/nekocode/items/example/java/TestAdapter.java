@@ -18,16 +18,16 @@ package cn.nekocode.items.example.java;
 
 import android.support.annotation.NonNull;
 import cn.nekocode.items.ItemAdapter;
-import cn.nekocode.items.annotation.Adapter;
-import cn.nekocode.items.annotation.ViewDelegate;
-import cn.nekocode.items.annotation.ViewSelector;
+import cn.nekocode.items.annotation.AdapterClass;
+import cn.nekocode.items.annotation.ItemMethod;
+import cn.nekocode.items.annotation.SelectorMethod;
 
 import java.util.ArrayList;
 
 /**
  * @author nekocode (nekocode.cn@gmail.com)
  */
-@Adapter
+@AdapterClass
 public abstract class TestAdapter extends ItemAdapter {
     private final ArrayList list = new ArrayList();
 
@@ -47,23 +47,23 @@ public abstract class TestAdapter extends ItemAdapter {
     }
 
     @NonNull
-    @ViewDelegate
-    public abstract HeaderItemView.Delegate headerView();
+    @ItemMethod
+    public abstract HeaderItem headerItem();
 
     @NonNull
-    @ViewDelegate
-    public abstract StringItemView.Delegate stringView();
+    @ItemMethod
+    public abstract StringItem stringItem();
 
     @NonNull
-    @ViewDelegate
-    public abstract FooterItemView.Delegate footerView();
+    @ItemMethod
+    public abstract FooterItem footerItem();
 
-    @ViewSelector
+    @SelectorMethod
     public int viewForHeaderOrFooter(int position, @NonNull HeaderOrFooterData data) {
         if (data.isHeader()) {
-            return headerView().viewType();
+            return headerItem().getViewType();
         } else {
-            return footerView().viewType();
+            return footerItem().getViewType();
         }
     }
 }

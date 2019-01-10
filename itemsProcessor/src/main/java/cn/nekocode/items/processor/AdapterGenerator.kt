@@ -16,7 +16,7 @@
 
 package cn.nekocode.items.processor
 
-import cn.nekocode.items.processor.model.Delegate
+import cn.nekocode.items.processor.model.Item
 import cn.nekocode.items.processor.model.Selector
 import javax.annotation.processing.ProcessingEnvironment
 import javax.lang.model.element.TypeElement
@@ -27,10 +27,10 @@ import javax.lang.model.element.TypeElement
 class AdapterGenerator(
     private val env: ProcessingEnvironment,
     private val adapter: TypeElement,
-    private val delegates: List<Delegate>,
-    private val delegateIds: Map<Delegate, Int>,
-    private val dataDelegates: Map<TypeElement, Delegate?>,
-    private val dataSelectors: Map<TypeElement, Selector>
+    private val items: List<Item>,
+    private val itemToIds: Map<Item, Int>,
+    private val dataToItems: Map<TypeElement, Item?>,
+    private val dataToSelectors: Map<TypeElement, Selector>
 ) {
 
     companion object {
@@ -43,65 +43,68 @@ class AdapterGenerator(
         val nonNull = element(Names.NON_NULL)?.let { "@${it.simpleName}" } ?: ""
 
         // Obtain some elements
-        val itemView = element(Names.ITEM_VIEW)
-        val itemViewSelector = element(Names.ITEM_VIEW_SELECTOR)
+        val itemClass = element(Names.ITEM)
+        val itemSelectorClass = element(Names.ITEM_SELECTOR)
 
         // Code of map initializing
         var mapInitializing = ""
-        for ((data, delegate) in dataDelegates) {
-            if (delegate == null) {
+        for ((data, item) in dataToItems) {
+            if (item == null) {
                 continue
             }
-            val id = delegateIds[delegate]!!
+            val id = itemToIds[item]!!
             mapInitializing += "${indent(2)}viewTypes.put(${data.qualifiedName}.class, $id);\n"
         }
         if (mapInitializing != "") {
             mapInitializing += "\n"
         }
-        for ((data, selector) in dataSelectors) {
+        for ((data, selector) in dataToSelectors) {
             mapInitializing += """
-        selectors.put(${data.qualifiedName}.class, new ${itemViewSelector.simpleName}<${data.qualifiedName}>() {
+        selectors.put(${data.qualifiedName}.class, new ${itemSelectorClass.simpleName}<${data.qualifiedName}>() {
            @Override
             public int select(int position, $nonNull ${data.qualifiedName} data) {
                 return ${selector.method.simpleName}(position, data);
             }
         });
-        """.trimStartEndBlanks()
+""".trimStartEndBlanks()
         }
-        mapInitializing.prependIndent(indent(2))
+//        mapInitializing.prependIndent(indent(2))
 
         // Code of delegate methods
-        var delegateMethods = ""
-        for (delegate in delegates) {
-            delegateMethods += """
+        val itemMethods = items.joinToString("\n") {
+            val id = itemToIds[it]
+            """
+    private final ${it.item.qualifiedName} item$id =
+            new ${it.item.qualifiedName}(this, $id);
     $nonNull
     @Override
-    public ${delegate.delegate.qualifiedName} ${delegate.method.simpleName}() {
-        return new ${delegate.delegate.qualifiedName}() {
-            @Override
-            public int viewType() {
-                return ${delegateIds[delegate]};
-            }
-
-            @Override
-            public void setCallback(${delegate.callback.qualifiedName} callback) {
-                callbacks.put(viewType(), callback);
-            }
-        };
+    public ${it.item.qualifiedName} ${it.method.simpleName}() {
+        return item$id;
     }
-            """.trimStartEndBlanks()
+
+""".trimStartEndBlanks()
         }
 
         // Code of holder switch cases
-        var holderSwitchCases = ""
-        for (delegate in delegates) {
-            val id = delegateIds[delegate]!!
-            holderSwitchCases += """
+        val holderSwitchCases = items.joinToString("\n") {
+            val id = itemToIds[it]
+            """
             case $id: {
-                holder = new ${delegate.view.qualifiedName}().onCreateViewHolder(this, viewGroup, viewType);
+                holder = item$id.onCreateViewHolder(inflater, viewGroup);
                 break;
             }
-            """.trimStartEndBlanks()
+""".trimStartEndBlanks()
+        }
+
+        // Code of holder bindings
+        val holderBindings = items.joinToString("\n") {
+            val id = itemToIds[it]
+            """
+            case $id: {
+                item$id.onBindViewHolder((${it.holder.qualifiedName}) viewHolder, position, getData(position));
+                break;
+            }
+""".trimStartEndBlanks()
         }
 
         // Code of class
@@ -110,19 +113,20 @@ package $packageName;
 
 ${if (nonNull != "") "import ${Names.NON_NULL};" else ""}
 import android.support.v7.widget.RecyclerView;
+import android.view.LayoutInflater;
 import android.view.ViewGroup;
-import ${itemView.qualifiedName};
-import ${itemViewSelector.qualifiedName};
+import ${itemClass.qualifiedName};
+import ${itemSelectorClass.qualifiedName};
 import java.util.HashMap;
 
 public class ${adapter.simpleName}$CLASSNAME_POSTFIX extends ${adapter.simpleName} {
     private final HashMap<Class, Integer> viewTypes = new HashMap<>();
-    private final HashMap<Class, ${itemViewSelector.simpleName}> selectors = new HashMap<>();
+    private final HashMap<Class, ${itemSelectorClass.simpleName}> selectors = new HashMap<>();
     {
 $mapInitializing
     }
 
-$delegateMethods
+$itemMethods
 
     @Override
     public int getItemViewType(int position) {
@@ -131,7 +135,7 @@ $delegateMethods
         if (viewType != null) {
             return viewType;
         } else {
-            final ${itemViewSelector.simpleName} selector = selectors.get(data.getClass());
+            final ${itemSelectorClass.simpleName} selector = selectors.get(data.getClass());
             if (selector != null) {
                 return selector.select(position, data);
             }
@@ -142,7 +146,8 @@ $delegateMethods
     $nonNull
     @Override
     public RecyclerView.ViewHolder onCreateViewHolder($nonNull ViewGroup viewGroup, int viewType) {
-        final ${itemView.simpleName}.Holder holder;
+        final RecyclerView.ViewHolder holder;
+        final LayoutInflater inflater = LayoutInflater.from(viewGroup.getContext());
         switch (viewType) {
 $holderSwitchCases
             default: {
@@ -157,10 +162,12 @@ $holderSwitchCases
 
     @Override
     public void onBindViewHolder($nonNull RecyclerView.ViewHolder viewHolder, int position) {
-        ((${itemView.simpleName}.Holder) viewHolder).outer().setData(getData(position));
+        switch (viewHolder.getItemViewType()) {
+$holderBindings
+        }
     }
 }
-        """.trimStartEndBlanks()
+""".trimStartEndBlanks()
 
         // Write code of class to file
         env.filer.createSourceFile("${adapter.qualifiedName}$CLASSNAME_POSTFIX").openWriter().use {

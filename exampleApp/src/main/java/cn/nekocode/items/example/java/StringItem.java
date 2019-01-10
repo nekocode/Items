@@ -17,45 +17,54 @@
 package cn.nekocode.items.example.java;
 
 import android.support.annotation.NonNull;
+import android.support.v7.widget.RecyclerView;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Button;
 import android.widget.TextView;
-
-import cn.nekocode.items.ItemView;
-import cn.nekocode.items.ItemViewDelegate;
-import cn.nekocode.items.annotation.ViewDelegateOf;
+import cn.nekocode.items.Item;
+import cn.nekocode.items.ItemAdapter;
 import cn.nekocode.items.example.R;
 
 /**
  * @author nekocode (nekocode.cn@gmail.com)
  */
-public class StringItemView extends ItemView<String, StringItemView.Callback> {
-    private TextView textView;
-    private Button button;
+public class StringItem extends Item<String, StringItem.Holder, StringItem.Callback> {
+
+    public StringItem(ItemAdapter adapter, int viewType) {
+        super(adapter, viewType);
+    }
 
     @NonNull
     @Override
-    public View onCreateItemView(@NonNull LayoutInflater inflater, @NonNull ViewGroup parent) {
+    public Holder onCreateViewHolder(@NonNull LayoutInflater inflater, @NonNull ViewGroup parent) {
         final View itemView = inflater.inflate(R.layout.item_string, parent, false);
-        textView = itemView.findViewById(R.id.textView);
-        button = itemView.findViewById(R.id.button);
-        button.setOnClickListener(v -> {
+        final Holder holder = new Holder(itemView);
+        holder.button.setOnClickListener(v -> {
             if (getCallback() != null) {
-                getCallback().onButtonClick(getData());
+                getCallback().onButtonClick(holder.data);
             }
         });
-        return itemView;
+        return holder;
     }
 
     @Override
-    public void onBindData(@NonNull String data) {
-        textView.setText(data);
+    public void onBindViewHolder(@NonNull Holder holder, int position, @NonNull String data) {
+        holder.data = data;
+        holder.textView.setText(data);
     }
 
-    @ViewDelegateOf(StringItemView.class)
-    public interface Delegate extends ItemViewDelegate<Callback> {
+    static class Holder extends RecyclerView.ViewHolder {
+        private TextView textView;
+        private Button button;
+        private String data;
+
+        Holder(View itemView) {
+            super(itemView);
+            textView = itemView.findViewById(R.id.textView);
+            button = itemView.findViewById(R.id.button);
+        }
     }
 
     public interface Callback {

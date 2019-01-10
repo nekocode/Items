@@ -1,5 +1,5 @@
 /*
- * Copyright 2018. nekocode (nekocode.cn@gmail.com)
+ * Copyright 2019. nekocode (nekocode.cn@gmail.com)
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,13 +14,18 @@
  * limitations under the License.
  */
 
-package cn.nekocode.items;
+package cn.nekocode.items.annotation;
 
-import android.support.annotation.NonNull;
+import java.lang.annotation.Retention;
+import java.lang.annotation.Target;
+
+import static java.lang.annotation.ElementType.METHOD;
+import static java.lang.annotation.RetentionPolicy.CLASS;
 
 /**
  * @author nekocode (nekocode.cn@gmail.com)
  */
-public interface ItemViewSelector<T> {
-    int select(int position, @NonNull T data);
+@Retention(CLASS)
+@Target(METHOD)
+public @interface ItemMethod {
 }

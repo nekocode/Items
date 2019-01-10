@@ -17,24 +17,14 @@
 package cn.nekocode.items;
 
 import android.support.annotation.NonNull;
-import android.support.annotation.Nullable;
 import android.support.v7.widget.RecyclerView;
-import android.util.SparseArray;
 
 /**
  * @author nekocode (nekocode.cn@gmail.com)
  */
-public abstract class ItemAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
-    protected final SparseArray callbacks = new SparseArray();
+public abstract class ItemAdapter extends
+        RecyclerView.Adapter<RecyclerView.ViewHolder> {
 
-    /**
-     * Get data in specified position
-     */
     @NonNull
     public abstract <T> T getData(int position);
-
-    @Nullable
-    final <C> C getCallback(int viewType) {
-        return (C) callbacks.get(viewType);
-    }
 }

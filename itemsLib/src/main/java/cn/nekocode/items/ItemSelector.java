@@ -16,12 +16,11 @@
 
 package cn.nekocode.items;
 
-import android.support.annotation.Nullable;
+import android.support.annotation.NonNull;
 
 /**
  * @author nekocode (nekocode.cn@gmail.com)
  */
-public interface ItemViewDelegate<C> {
-    int viewType();
-    void setCallback(@Nullable C callback);
+public interface ItemSelector<T> {
+    int select(int position, @NonNull T data);
 }

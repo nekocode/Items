@@ -42,7 +42,7 @@ class ItemsProcessorTest {
             .processedWith(ItemsProcessor())
             .failsToCompile()
             .withErrorContaining(
-                "The @${Names.ADAPTER} should not annotates to interface"
+                "The @${Names.ADAPTER_ANNOTATION} should not annotates to interface"
             )
     }
 
@@ -104,7 +104,7 @@ class ItemsProcessorTest {
             .that(arrayListOf(adapterFile(body = METHOD_2)))
             .processedWith(ItemsProcessor())
             .failsToCompile()
-            .withErrorContaining("The adapter class should override method ${Names.GET_DATA}")
+            .withErrorContaining("The adapter class should override method ${Names.GET_DATA_SET}")
 
         Truth.assert_()
             .about(JavaSourcesSubjectFactory.javaSources())
@@ -118,7 +118,7 @@ class ItemsProcessorTest {
         fun wrap(method: String, others: String = "") = """
             $METHOD_1
             $METHOD_2
-            @${Names.VIEW_DELEGATE}
+            @${Names.ITEM_ANNOTATION}
             $method
             $others
         """.trimIndent()
@@ -148,7 +148,7 @@ class ItemsProcessorTest {
 
         body = wrap(
             "public abstract com.test.TestItemView.Delegate testItemView();",
-            others = "@${Names.VIEW_DELEGATE} public abstract com.test.TestItemView.Delegate2 testItemView2();"
+            others = "@${Names.ITEM_ANNOTATION} public abstract com.test.TestItemView.Delegate2 testItemView2();"
         )
         val itemViewOthers = """
             @${Names.VIEW_DELEGATE_OF}(TestItemView.class)
@@ -167,7 +167,7 @@ class ItemsProcessorTest {
         val adapterBody = """
             $METHOD_1
             $METHOD_2
-            @${Names.VIEW_DELEGATE}
+            @${Names.ITEM_ANNOTATION}
             public abstract com.test.TestItemView.Delegate testItemView();
         """.trimIndent()
 
@@ -227,7 +227,7 @@ class ItemsProcessorTest {
             $others
         """.trimIndent()
 
-        var body = wrap("@${Names.VIEW_SELECTOR} public abstract int viewTypeForString(int p, String d);")
+        var body = wrap("@${Names.SELECTOR_ANNOTATION} public abstract int viewTypeForString(int p, String d);")
         Truth.assert_()
             .about(JavaSourcesSubjectFactory.javaSources())
             .that(arrayListOf(itemViewFile(), adapterFile(body = body)))
@@ -235,7 +235,7 @@ class ItemsProcessorTest {
             .failsToCompile()
             .withErrorContaining("The selector method should be implemented")
 
-        body = wrap("@${Names.VIEW_SELECTOR} public int viewTypeForString(int p) { return 0; };")
+        body = wrap("@${Names.SELECTOR_ANNOTATION} public int viewTypeForString(int p) { return 0; };")
         Truth.assert_()
             .about(JavaSourcesSubjectFactory.javaSources())
             .that(arrayListOf(itemViewFile(), adapterFile(body = body)))
@@ -243,7 +243,7 @@ class ItemsProcessorTest {
             .failsToCompile()
             .withErrorContaining("Parameters of the selector method should be (int index, YourDataType data)")
 
-        body = wrap("@${Names.VIEW_SELECTOR} public int viewTypeForString(String p, String d) { return 0; };")
+        body = wrap("@${Names.SELECTOR_ANNOTATION} public int viewTypeForString(String p, String d) { return 0; };")
         Truth.assert_()
             .about(JavaSourcesSubjectFactory.javaSources())
             .that(arrayListOf(itemViewFile(), adapterFile(body = body)))
@@ -251,7 +251,7 @@ class ItemsProcessorTest {
             .failsToCompile()
             .withErrorContaining("Parameters of the selector method should be (int index, YourDataType data)")
 
-        body = wrap("@${Names.VIEW_SELECTOR} public int viewTypeForString(int p, String d) { return 0; };")
+        body = wrap("@${Names.SELECTOR_ANNOTATION} public int viewTypeForString(int p, String d) { return 0; };")
         Truth.assert_()
             .about(JavaSourcesSubjectFactory.javaSources())
             .that(arrayListOf(itemViewFile(), adapterFile(body = body)))
@@ -259,8 +259,8 @@ class ItemsProcessorTest {
             .compilesWithoutError()
 
         body = wrap(
-            "@${Names.VIEW_SELECTOR} public int viewTypeForString(int p, String d) { return 0; };" +
-                    "@${Names.VIEW_SELECTOR} public int viewTypeForString2(int p, String d) { return 0; };"
+            "@${Names.SELECTOR_ANNOTATION} public int viewTypeForString(int p, String d) { return 0; };" +
+                    "@${Names.SELECTOR_ANNOTATION} public int viewTypeForString2(int p, String d) { return 0; };"
         )
         Truth.assert_()
             .about(JavaSourcesSubjectFactory.javaSources())
@@ -270,8 +270,8 @@ class ItemsProcessorTest {
             .withErrorContaining("There is a selector method having duplicate data type in adapter")
 
         body = wrap(
-            "@${Names.VIEW_DELEGATE} public abstract com.test.TestItemView.Delegate testItemView();" +
-                    "@${Names.VIEW_DELEGATE} public abstract com.test.TestItemView2.Delegate testItemView2();"
+            "@${Names.ITEM_ANNOTATION} public abstract com.test.TestItemView.Delegate testItemView();" +
+                    "@${Names.ITEM_ANNOTATION} public abstract com.test.TestItemView2.Delegate testItemView2();"
         )
         Truth.assert_()
             .about(JavaSourcesSubjectFactory.javaSources())
@@ -295,7 +295,7 @@ class ItemsProcessorTest {
         "com.test.TestAdapter",
         """
             package com.test;
-            @${Names.ADAPTER}
+            @${Names.ADAPTER_ANNOTATION}
             public $type TestAdapter $extends { $body }
         """.trimIndent()
     )
@@ -310,7 +310,7 @@ class ItemsProcessorTest {
         "com.test.$className",
         """
             package com.test;
-            public class $className extends ${Names.ITEM_VIEW}<String, $className.Callback> {
+            public class $className extends ${Names.ITEM}<String, $className.Callback> {
                 @Override
                 public $VIEW onCreateItemView($LAYOUT_INFLATER i, $VIEW_GROUP p) {
                     return null;

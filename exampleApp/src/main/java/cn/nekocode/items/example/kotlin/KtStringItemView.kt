@@ -1,33 +1,36 @@
 package cn.nekocode.items.example.kotlin
 
+import android.support.v7.widget.RecyclerView
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import cn.nekocode.items.ItemView
-import cn.nekocode.items.ItemViewDelegate
-import cn.nekocode.items.annotation.ViewDelegateOf
+import cn.nekocode.items.Item
+import cn.nekocode.items.ItemAdapter
 import cn.nekocode.items.example.R
 import kotlinx.android.synthetic.main.item_string.view.*
 
-class KtStringItemView : ItemView<String, KtStringItemView.Callback>() {
+class KtStringItemView(adapter: ItemAdapter, viewType: Int) :
+    Item<String, KtStringItemView.Holder, KtStringItemView.Callback>(adapter, viewType) {
 
-    override fun onCreateItemView(inflater: LayoutInflater, parent: ViewGroup): View {
+    override fun onCreateViewHolder(inflater: LayoutInflater, parent: ViewGroup): Holder {
         val itemView = inflater.inflate(R.layout.item_string, parent, false)
+        val holder = Holder(itemView)
         itemView.button.setOnClickListener {
-            callback?.onButtonClick(data)
+            callback?.onButtonClick(holder.data)
         }
-        return itemView
+        return holder
     }
 
-    override fun onBindData(data: String) {
-        val itemView = view ?: return
-        itemView.textView.text = data
+    override fun onBindViewHolder(holder: Holder, position: Int, data: String) {
+        holder.data = data
+        holder.itemView.textView.text = data
     }
 
-    @ViewDelegateOf(KtStringItemView::class)
-    interface Delegate : ItemViewDelegate<Callback>
+    class Holder(itemView: View) : RecyclerView.ViewHolder(itemView) {
+        var data: String? = null
+    }
 
     interface Callback {
-        fun onButtonClick(data: String)
+        fun onButtonClick(data: String?)
     }
 }

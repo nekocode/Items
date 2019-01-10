@@ -14,18 +14,18 @@
  * limitations under the License.
  */
 
-package cn.nekocode.items.processor.model
+package cn.nekocode.items.annotation;
 
-import javax.lang.model.element.ExecutableElement
-import javax.lang.model.element.TypeElement
+import java.lang.annotation.Retention;
+import java.lang.annotation.Target;
+
+import static java.lang.annotation.ElementType.METHOD;
+import static java.lang.annotation.RetentionPolicy.CLASS;
 
 /**
  * @author nekocode (nekocode.cn@gmail.com)
  */
-data class Delegate(
-    val method: ExecutableElement,
-    val delegate: TypeElement,
-    val view: TypeElement,
-    val data: TypeElement,
-    val callback: TypeElement
-)
+@Retention(CLASS)
+@Target(METHOD)
+public @interface SelectorMethod {
+}

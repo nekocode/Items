@@ -14,21 +14,18 @@
  * limitations under the License.
  */
 
-package cn.nekocode.items.annotation;
+package cn.nekocode.items.processor.model
 
-import cn.nekocode.items.ItemView;
-
-import java.lang.annotation.Retention;
-import java.lang.annotation.Target;
-
-import static java.lang.annotation.ElementType.TYPE;
-import static java.lang.annotation.RetentionPolicy.CLASS;
+import javax.lang.model.element.ExecutableElement
+import javax.lang.model.element.TypeElement
 
 /**
  * @author nekocode (nekocode.cn@gmail.com)
  */
-@Retention(CLASS)
-@Target(TYPE)
-public @interface ViewDelegateOf {
-    Class<? extends ItemView> value();
-}
+data class Item(
+    val method: ExecutableElement,
+    val item: TypeElement,
+    val data: TypeElement,
+    val holder: TypeElement,
+    val callback: TypeElement
+)

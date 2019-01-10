@@ -1,29 +1,28 @@
 package cn.nekocode.items.example.kotlin
 
+import android.support.v7.widget.RecyclerView
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import cn.nekocode.items.ItemView
-import cn.nekocode.items.ItemViewDelegate
-import cn.nekocode.items.annotation.ViewDelegateOf
-import cn.nekocode.items.example.java.HeaderOrFooterData
+import cn.nekocode.items.Item
+import cn.nekocode.items.ItemAdapter
 import cn.nekocode.items.example.R
+import cn.nekocode.items.example.java.HeaderOrFooterData
 import kotlinx.android.synthetic.main.item_header.view.*
 
-class KtHeaderItemView : ItemView<HeaderOrFooterData, KtHeaderItemView.Callback>() {
+class KtHeaderItemView(adapter: ItemAdapter, viewType: Int) :
+    Item<HeaderOrFooterData, KtHeaderItemView.Holder, KtHeaderItemView.Callback>(adapter, viewType) {
 
-    override fun onCreateItemView(inflater: LayoutInflater, parent: ViewGroup): View {
-        return inflater.inflate(R.layout.item_header, parent, false)
+    override fun onCreateViewHolder(inflater: LayoutInflater, parent: ViewGroup): Holder {
+        val itemView = inflater.inflate(R.layout.item_header, parent, false)
+        return Holder(itemView)
     }
 
-    override fun onBindData(data: HeaderOrFooterData) {
-        val itemView = view ?: return
-        itemView.textView.text = data.text
+    override fun onBindViewHolder(holder: Holder, position: Int, data: HeaderOrFooterData) {
+        holder.itemView.textView.text = data.text
     }
 
-    @ViewDelegateOf(KtHeaderItemView::class)
-    interface Delegate : ItemViewDelegate<Callback>
+    class Holder(itemView: View) : RecyclerView.ViewHolder(itemView)
 
-    interface Callback {
-    }
+    interface Callback
 }

@@ -34,7 +34,7 @@ class AdapterGenerator(
 ) {
 
     companion object {
-        const val CLASSNAME_POSTFIX = "_Impl"
+        const val CLASSNAME_POSTFIX = "Impl"
     }
 
     fun generate() {

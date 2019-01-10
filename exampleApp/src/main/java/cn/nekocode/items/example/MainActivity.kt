@@ -7,7 +7,7 @@ import android.widget.Toast
 import cn.nekocode.items.example.java.HeaderOrFooterData
 import cn.nekocode.items.example.kotlin.KtFooterItemView
 import cn.nekocode.items.example.kotlin.KtStringItemView
-import cn.nekocode.items.example.kotlin.KtTestAdapter_Impl
+import cn.nekocode.items.example.kotlin.KtTestAdapterImpl
 import kotlinx.android.synthetic.main.activity_main.*
 
 class MainActivity : AppCompatActivity() {
@@ -16,7 +16,7 @@ class MainActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
 
-        val adapter = KtTestAdapter_Impl()
+        val adapter = KtTestAdapterImpl()
 
         // Add data
         adapter.list.add(HeaderOrFooterData("Header"))

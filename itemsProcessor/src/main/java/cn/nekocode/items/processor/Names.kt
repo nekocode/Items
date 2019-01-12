@@ -25,7 +25,7 @@ object Names {
     const val SELECTOR_ANNOTATION = "cn.nekocode.items.annotation.SelectorMethod"
 
     const val ITEM_ADAPTER = "cn.nekocode.items.ItemAdapter"
-    const val ITEM = "cn.nekocode.items.Item"
+    const val BASE_ITEM = "cn.nekocode.items.BaseItem"
     const val ITEM_SELECTOR = "cn.nekocode.items.ItemSelector"
     const val GET_DATA = "getData"
     const val GET_ITEM_COUNT = "getItemCount"

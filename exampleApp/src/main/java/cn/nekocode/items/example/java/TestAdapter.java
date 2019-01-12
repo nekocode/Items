@@ -17,34 +17,15 @@
 package cn.nekocode.items.example.java;
 
 import android.support.annotation.NonNull;
-import cn.nekocode.items.ItemAdapter;
 import cn.nekocode.items.annotation.AdapterClass;
 import cn.nekocode.items.annotation.ItemMethod;
 import cn.nekocode.items.annotation.SelectorMethod;
-
-import java.util.ArrayList;
 
 /**
  * @author nekocode (nekocode.cn@gmail.com)
  */
 @AdapterClass
-public abstract class TestAdapter extends ItemAdapter {
-    private final ArrayList list = new ArrayList();
-
-    public ArrayList list() {
-        return list;
-    }
-
-    @NonNull
-    @Override
-    public <T> T getData(int position) {
-        return (T) list.get(position);
-    }
-
-    @Override
-    public int getItemCount() {
-        return list.size();
-    }
+public abstract class TestAdapter extends BaseAdapter {
 
     @NonNull
     @ItemMethod

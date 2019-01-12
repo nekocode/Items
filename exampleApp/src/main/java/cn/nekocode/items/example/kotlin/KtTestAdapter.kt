@@ -1,18 +1,13 @@
 package cn.nekocode.items.example.kotlin
 
-import cn.nekocode.items.ItemAdapter
 import cn.nekocode.items.annotation.AdapterClass
 import cn.nekocode.items.annotation.ItemMethod
 import cn.nekocode.items.annotation.SelectorMethod
+import cn.nekocode.items.example.java.BaseAdapter
 import cn.nekocode.items.example.java.HeaderOrFooterData
 
 @AdapterClass
-abstract class KtTestAdapter : ItemAdapter() {
-    val list = ArrayList<Any>()
-
-    override fun <T> getData(position: Int) = list[position] as T
-
-    override fun getItemCount() = list.size
+abstract class KtTestAdapter : BaseAdapter() {
 
     @ItemMethod
     abstract fun headerItem(): KtHeaderItemView

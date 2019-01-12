@@ -23,14 +23,14 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.CheckBox;
 import android.widget.TextView;
-import cn.nekocode.items.Item;
+import cn.nekocode.items.BaseItem;
 import cn.nekocode.items.ItemAdapter;
 import cn.nekocode.items.example.R;
 
 /**
  * @author nekocode (nekocode.cn@gmail.com)
  */
-public class FooterItem extends Item<HeaderOrFooterData, FooterItem.Holder, FooterItem.Callback> {
+public class FooterItem extends BaseItem<HeaderOrFooterData, FooterItem.Holder, FooterItem.Callback> {
 
     public FooterItem(ItemAdapter adapter, int viewType) {
         super(adapter, viewType);

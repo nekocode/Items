@@ -25,12 +25,12 @@ import android.view.ViewGroup;
 /**
  * @author nekocode (nekocode.cn@gmail.com)
  */
-public abstract class Item<D, V extends RecyclerView.ViewHolder, C> {
+public abstract class BaseItem<D, V extends RecyclerView.ViewHolder, C> {
     private ItemAdapter mAdapter;
     private int mViewType;
     private C mCallback;
 
-    public Item(ItemAdapter adapter, int viewType) {
+    public BaseItem(ItemAdapter adapter, int viewType) {
         this.mAdapter = adapter;
         this.mViewType = viewType;
     }

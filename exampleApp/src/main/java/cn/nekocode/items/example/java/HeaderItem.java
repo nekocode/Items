@@ -22,14 +22,14 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.TextView;
-import cn.nekocode.items.Item;
+import cn.nekocode.items.BaseItem;
 import cn.nekocode.items.ItemAdapter;
 import cn.nekocode.items.example.R;
 
 /**
  * @author nekocode (nekocode.cn@gmail.com)
  */
-public class HeaderItem extends Item<HeaderOrFooterData, HeaderItem.Holder, HeaderItem.Callback> {
+public class HeaderItem extends BaseItem<HeaderOrFooterData, HeaderItem.Holder, HeaderItem.Callback> {
 
     public HeaderItem(ItemAdapter adapter, int viewType) {
         super(adapter, viewType);

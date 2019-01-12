@@ -310,7 +310,7 @@ class ItemsProcessorTest {
         "com.test.$className",
         """
             package com.test;
-            public class $className extends ${Names.ITEM}<String, $className.Callback> {
+            public class $className extends ${Names.BASE_ITEM}<String, $className.Callback> {
                 @Override
                 public $VIEW onCreateItemView($LAYOUT_INFLATER i, $VIEW_GROUP p) {
                     return null;

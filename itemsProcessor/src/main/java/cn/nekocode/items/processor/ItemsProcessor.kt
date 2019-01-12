@@ -24,6 +24,7 @@ import javax.annotation.processing.RoundEnvironment
 import javax.lang.model.SourceVersion
 import javax.lang.model.element.*
 import javax.lang.model.type.DeclaredType
+import javax.lang.model.type.NoType
 import javax.lang.model.type.TypeKind
 import javax.lang.model.type.TypeMirror
 import javax.tools.Diagnostic
@@ -104,28 +105,12 @@ class ItemsProcessor : AbstractProcessor() {
             val getItemCountElement = foundElement!!
 
             // Check if this element override specified methods
-            var overrideGetData = false
-            var overrideGetItemCount = false
-            for (element in adapterElement.enclosedElements) {
-                if (element !is ExecutableElement) {
-                    continue
-                }
-
-                if (!overrideGetData && element.simpleName.contentEquals(Names.GET_DATA)) {
-                    overrideGetData = elements().overrides(
-                        element, getDataElement, adapterElement)
-                }
-                if (!overrideGetItemCount && element.simpleName.contentEquals(Names.GET_ITEM_COUNT)) {
-                    overrideGetItemCount = elements().overrides(
-                        element, getItemCountElement, adapterElement)
-                }
-            }
-            if (!overrideGetData) {
+            if (!adapterElement.hasOverrideMethod(getDataElement)) {
                 printError("The adapter class should override method ${Names.GET_DATA}(): " +
                         "${adapterElement.qualifiedName}")
                 continue
             }
-            if (!overrideGetItemCount) {
+            if (!adapterElement.hasOverrideMethod(getItemCountElement)) {
                 printError("The adapter class should override method ${Names.GET_ITEM_COUNT}(): " +
                         "${adapterElement.qualifiedName}")
                 continue
@@ -161,14 +146,14 @@ class ItemsProcessor : AbstractProcessor() {
             // Create item-id map
             var id = 0
             val itemToIds = HashMap<Item, Int>()
-            val views = HashSet<TypeElement>()
+            val itemSet = HashSet<TypeElement>()
             for (item in items) {
-                val view = item.item
-                if (view !in views) {
+                val itemElement = item.item
+                if (itemElement !in itemSet) {
                     itemToIds[item] = id ++
-                    views.add(view)
+                    itemSet.add(itemElement)
                 } else {
-                    printError("There is a duplicate item view ${view.qualifiedName} in adapter: " +
+                    printError("There is a duplicate item ${itemElement.qualifiedName} in adapter: " +
                             "${adapterElement.qualifiedName}")
                     continue@processing
                 }
@@ -267,7 +252,7 @@ class ItemsProcessor : AbstractProcessor() {
         adapterElement: TypeElement,
         methodElements: List<ExecutableElement>
     ): Either<List<Item>> {
-        val itemElement = elements().getTypeElement(Names.ITEM)
+        val baseItemElement = elements().getTypeElement(Names.BASE_ITEM)
         val items = ArrayList<Item>()
 
         for (element in methodElements) {
@@ -279,11 +264,11 @@ class ItemsProcessor : AbstractProcessor() {
                         "${adapterElement.qualifiedName}#${element.simpleName}")
             }
 
-            // Check if the item class is extending Item
-            returnElement.findExtendsType(itemElement)
+            // Check if the item class is extending BaseItem
+            returnElement.findExtendsType(baseItemElement)
                 ?: return Either.Error(
                     "The item class should extends " +
-                            "${itemElement.qualifiedName}: " +
+                            "${baseItemElement.qualifiedName}: " +
                             "${returnElement.qualifiedName}"
                 )
 
@@ -362,21 +347,54 @@ class ItemsProcessor : AbstractProcessor() {
     private fun TypeElement.isInterface() =
         this.kind == ElementKind.INTERFACE
 
-    private fun TypeElement.findExtendsType(typeElement: TypeElement): TypeMirror? {
-        if (!typeElement.isInterface()) {
-            return if (this.superclass.asElement() == typeElement) {
-                this.superclass
-            } else {
-                null
-            }
+    private fun TypeElement.superClassElement(): TypeElement? {
+        if (this.superclass is NoType) {
+            return null
         }
+        return this.superclass.asElement() as TypeElement
+    }
 
-        for (`interface` in this.interfaces) {
-            if (`interface`.asElement() == typeElement) {
-                return `interface`
+    private fun TypeElement.findExtendsType(targetTypeElement: TypeElement): TypeMirror? {
+        if (!targetTypeElement.isInterface()) {
+            if (this.isInterface()) {
+                // If source type is interface, return null
+                return null
             }
+
+            if (this.superClassElement() == targetTypeElement) {
+                return this.superclass
+            } else {
+                // Find deeper level
+                this.superClassElement()?.findExtendsType(targetTypeElement)?.run {
+                    // If found, return it
+                    return this
+                }
+            }
+
+            return null
+
+        } else {
+            // Find first level extends
+            for (_interface in this.interfaces) {
+                if (_interface.asElement() == targetTypeElement) {
+                    return _interface
+                }
+            }
+
+            // Find deeper level
+            this.superClassElement()?.findExtendsType(targetTypeElement)?.run {
+                // If found, return it
+                return this
+            }
+            for (_interface in this.interfaces) {
+                (_interface.asElement() as TypeElement).findExtendsType(targetTypeElement)?.run {
+                    // If found, return it
+                    return this
+                }
+            }
+
+            return null
         }
-        return null
     }
 
     private fun Element.findAnnotation(annotationElement: TypeElement): AnnotationMirror? {
@@ -388,13 +406,23 @@ class ItemsProcessor : AbstractProcessor() {
         return null
     }
 
-    private fun AnnotationMirror.getValue(name: String): Any? {
-        for ((key, value) in this.elementValues) {
-            if (key.simpleName.contentEquals(name)) {
-                return value.value
+    private fun TypeElement.hasOverrideMethod(targetMethodElement: ExecutableElement): Boolean {
+        for (element in this.enclosedElements) {
+            if (element !is ExecutableElement) {
+                continue
+            }
+
+            if (element.simpleName.contentEquals(targetMethodElement.simpleName)) {
+                if (elements().overrides(element, targetMethodElement, this)) {
+                    return true
+                }
             }
         }
-        return null
+        this.superClassElement()?.hasOverrideMethod(targetMethodElement)?.run {
+            // If found, return it
+            return this
+        }
+        return false
     }
 
     private fun printError(msg: String) {

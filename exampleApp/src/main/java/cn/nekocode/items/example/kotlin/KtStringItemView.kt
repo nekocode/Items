@@ -4,13 +4,13 @@ import android.support.v7.widget.RecyclerView
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import cn.nekocode.items.Item
+import cn.nekocode.items.BaseItem
 import cn.nekocode.items.ItemAdapter
 import cn.nekocode.items.example.R
 import kotlinx.android.synthetic.main.item_string.view.*
 
 class KtStringItemView(adapter: ItemAdapter, viewType: Int) :
-    Item<String, KtStringItemView.Holder, KtStringItemView.Callback>(adapter, viewType) {
+    BaseItem<String, KtStringItemView.Holder, KtStringItemView.Callback>(adapter, viewType) {
 
     override fun onCreateViewHolder(inflater: LayoutInflater, parent: ViewGroup): Holder {
         val itemView = inflater.inflate(R.layout.item_string, parent, false)

@@ -17,14 +17,12 @@
 package cn.nekocode.items;
 
 import android.support.annotation.NonNull;
-import android.support.v7.widget.RecyclerView;
 
 /**
  * @author nekocode (nekocode.cn@gmail.com)
  */
-public abstract class ItemAdapter extends
-        RecyclerView.Adapter<RecyclerView.ViewHolder> {
+public interface ItemAdapter {
 
     @NonNull
-    public abstract <T> T getData(int position);
+    <T> T getData(int position);
 }

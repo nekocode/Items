@@ -22,5 +22,6 @@ import android.support.annotation.NonNull;
  * @author nekocode (nekocode.cn@gmail.com)
  */
 public interface ItemSelector<T> {
+
     int select(int position, @NonNull T data);
 }

@@ -23,14 +23,14 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Button;
 import android.widget.TextView;
-import cn.nekocode.items.Item;
+import cn.nekocode.items.BaseItem;
 import cn.nekocode.items.ItemAdapter;
 import cn.nekocode.items.example.R;
 
 /**
  * @author nekocode (nekocode.cn@gmail.com)
  */
-public class StringItem extends Item<String, StringItem.Holder, StringItem.Callback> {
+public class StringItem extends BaseItem<String, StringItem.Holder, StringItem.Callback> {
 
     public StringItem(ItemAdapter adapter, int viewType) {
         super(adapter, viewType);

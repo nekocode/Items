@@ -1,6 +1,8 @@
+# Items
+
 [![Build Status](https://travis-ci.com/nekocode/Items.svg?branch=master)](https://travis-ci.com/nekocode/Items) [![codecov](https://codecov.io/gh/nekocode/Items/branch/master/graph/badge.svg)](https://codecov.io/gh/nekocode/Items)
 
-该 Annotation Processor 可以为 Android 的 `RecyclerView` 生成基于 **数据-视图-绑定** 的 `Adapter`。
+这个 Annotation Processor 可以为 Android 的 `RecyclerView` 生成基于 **数据-视图-绑定** 的 `Adapter`。
 
 替换以下代码中的 `${lastest-version}` 为最新版本号 [![](https://jitpack.io/v/nekocode/Items.svg)](https://jitpack.io/#nekocode/Items)，并复制到 Android 工程中的 build.gradle 脚本:
 
@@ -86,13 +88,18 @@ public abstract class TestAdapter extends RecyclerView.Adapter<RecyclerView.View
         return (T) mList.get(position);
     }
 
+    /**
+     * 定义一个任意名称的方法来返回你想装载的 Item
+     */
     @NonNull
     @ItemMethod
     public abstract StringItem stringItem();
 }
 ```
 
-Annotation Processor 会为以上 Adapter 创建一个实现类 `TestAdapterImpl`，你可以通过以下例子来使用该 Adapter：
+这个 Adapter 必须实现 `ItemAdapter` 接口的 `getItemCount()` 和 `getData()` 方法。你可以使用任意类型的 Collection（例如上面的 `LinkedList`）来装载你的数据，这个 Adapter 会通过这两个方法来访问你的数据，然后根据数据的类型来选择对应的 Item 来创建 `ViewHolder`。
+
+在编译期间，Annotation Processor 会为这个 Adapter 生成一个实现类 `TestAdapterImpl`，你可以通过以下例子来使用这个 Adapter：
 
 ```java
 // 创建 Adapter 实例
@@ -110,3 +117,64 @@ adapter.stringItem().setCallback(data -> {
 // 为 RecyclerView 设置 Adapter
 recyclerView.setAdapter(adapter);
 ```
+
+以上就是这个工具的基础使用。
+
+此外，你还可以让你的单个数据类型绑定多个 Item：
+
+```java
+@Adapter
+public abstract class TestAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> implements ItemAdapter {
+    // ...
+
+    @NonNull
+    @ItemMethod
+    public abstract StringItem stringItem();
+
+    @NonNull
+    @ItemMethod
+    public abstract StringItem2 stringItem2();
+
+    /**
+     * 定义一个任意名称的方法来帮助 Adapter 选择绑定了同一数据类型的 Item
+     */
+    @SelectorMethod
+    public int itemForString(int position, @NonNull String data) {
+        if (!data.endsWith(2)) {
+            return stringItem().getViewType();
+        } else {
+            return stringItem2().getViewType();
+        }
+    }
+}
+```
+
+最后，还有一个小的 Tip。你可以定义一些 BaseAdapter 来简化你 Adapter 的代码，例如把对集合的操作封装起来，举个例子：
+
+```java
+public abstract class BaseArrayListAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> implements ItemAdapter {
+    private final ArrayList mList = new ArrayList();
+
+    public ArrayList getList() {
+        return mList;
+    }
+
+    @NonNull
+    @Override
+    public <T> T getData(int position) {
+        return (T) mList.get(position);
+    }
+
+    @Override
+    public int getItemCount() {
+        return mList.size();
+    }
+}
+
+@Adapter
+public abstract class TestAdapter extends BaseArrayListAdapter {
+    // ...
+}
+```
+
+更详细的应用可以参考这个仓库中的 [exampleApp](exampleApp) 模块。

@@ -1,4 +1,4 @@
-package cn.nekocode.items.example.java;
+package cn.nekocode.items.example;
 
 import android.support.annotation.NonNull;
 import android.support.v7.widget.RecyclerView;

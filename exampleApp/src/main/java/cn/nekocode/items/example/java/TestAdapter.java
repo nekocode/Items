@@ -17,15 +17,36 @@
 package cn.nekocode.items.example.java;
 
 import android.support.annotation.NonNull;
+import android.support.v7.widget.RecyclerView;
+import cn.nekocode.items.ItemAdapter;
 import cn.nekocode.items.annotation.AdapterClass;
 import cn.nekocode.items.annotation.ItemMethod;
 import cn.nekocode.items.annotation.SelectorMethod;
+
+import java.util.LinkedList;
 
 /**
  * @author nekocode (nekocode.cn@gmail.com)
  */
 @AdapterClass
-public abstract class TestAdapter extends BaseAdapter {
+public abstract class TestAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> implements ItemAdapter {
+    private final LinkedList mList = new LinkedList();
+
+    @NonNull
+    public LinkedList getList() {
+        return mList;
+    }
+
+    @Override
+    public int getItemCount() {
+        return mList.size();
+    }
+
+    @NonNull
+    @Override
+    public <T> T getData(int position) {
+        return (T) mList.get(position);
+    }
 
     @NonNull
     @ItemMethod

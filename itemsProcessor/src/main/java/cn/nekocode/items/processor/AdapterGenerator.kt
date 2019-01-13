@@ -115,7 +115,9 @@ $initializingOfItems
     private final Map<Class, ${itemSelectorClass.simpleName}> mDataClassToSelector;
 
     {
-        mItems = new BaseItem[] { $itemArray };
+        mItems = new BaseItem[] {
+                $itemArray
+        };
         mDataClassToViewType = new HashMap<>();
         mDataClassToSelector = new HashMap<>();
 

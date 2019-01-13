@@ -23,6 +23,8 @@ import android.support.annotation.NonNull;
  */
 public interface ItemAdapter {
 
+    int getItemCount();
+
     @NonNull
     <T> T getData(int position);
 }

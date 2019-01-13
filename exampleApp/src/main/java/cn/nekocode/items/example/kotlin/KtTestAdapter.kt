@@ -3,7 +3,7 @@ package cn.nekocode.items.example.kotlin
 import cn.nekocode.items.annotation.AdapterClass
 import cn.nekocode.items.annotation.ItemMethod
 import cn.nekocode.items.annotation.SelectorMethod
-import cn.nekocode.items.example.java.BaseAdapter
+import cn.nekocode.items.example.BaseAdapter
 import cn.nekocode.items.example.java.HeaderOrFooterData
 
 @AdapterClass

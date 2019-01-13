@@ -1,15 +1,12 @@
-# Items
 [![Build Status](https://travis-ci.com/nekocode/Items.svg?branch=master)](https://travis-ci.com/nekocode/Items) [![codecov](https://codecov.io/gh/nekocode/Items/branch/master/graph/badge.svg)](https://codecov.io/gh/nekocode/Items)
 
-A library to generate data-view-binding adapters of android recycler view.
+该 Annotation Processor 可以为 Android 的 `RecyclerView` 生成基于 **数据-视图-绑定** 的 `Adapter`。
 
-## Integration
-
-The `${lastest-version}` of this plugin is [![](https://jitpack.io/v/nekocode/Items.svg)](https://jitpack.io/#nekocode/Items). Copy below code to the build.gradle of your android project:
+替换以下代码中的 `${lastest-version}` 为最新版本号 [![](https://jitpack.io/v/nekocode/Items.svg)](https://jitpack.io/#nekocode/Items)，并复制到 Android 工程中的 build.gradle 脚本:
 
 ```gradle
 repositories {
-    maven { url 'https://jitpack.io' }
+    maven { url "https://jitpack.io" }
 }
 dependencies {
     implementation "com.github.nekocode.Items:itemsLib:${lastest-version}"
@@ -17,38 +14,43 @@ dependencies {
 }
 ```
 
-## Usage
-
-### 1. Define item view separately.
-
-Take attention to the parameters of class's generic type. The first parameter is the type of data and the second is the type of this view's event callback (can be interface or class).
+使用 `BaseItem` 能够帮助你把 `ViewHolder` 的创建和绑定从 `Adapter` 中提取出来，并且与特定的数据类型绑定。例如你可以为 `String` 类型的数据创建一个 Item：
 
 ```java
-public class StringItemView extends ItemView<String, StringItemView.Callback> {
-    private TextView textView;
-    private Button button;
+public class StringItem extends BaseItem<String, StringItem.Holder, StringItem.Callback> {
+
+    public StringItem(ItemAdapter adapter, int viewType) {
+        super(adapter, viewType);
+    }
 
     @NonNull
     @Override
-    public View onCreateItemView(@NonNull LayoutInflater inflater, @NonNull ViewGroup parent) {
+    public Holder onCreateViewHolder(@NonNull LayoutInflater inflater, @NonNull ViewGroup parent) {
         final View itemView = inflater.inflate(R.layout.item_string, parent, false);
-        textView = itemView.findViewById(R.id.textView);
-        button = itemView.findViewById(R.id.button);
-        button.setOnClickListener(v -> {
+        final Holder holder = new Holder(itemView);
+        holder.button.setOnClickListener(v -> {
             if (getCallback() != null) {
-                getCallback().onButtonClick(getData());
+                getCallback().onButtonClick(holder.data);
             }
         });
-        return itemView;
+        return holder;
     }
 
     @Override
-    public void onBindData(@NonNull String data) {
-        textView.setText(data);
+    public void onBindViewHolder(@NonNull Holder holder, int position, @NonNull String data) {
+        holder.data = data;
+        holder.textView.setText(data);
     }
+    static class Holder extends RecyclerView.ViewHolder {
+        private TextView textView;
+        private Button button;
+        private String data;
 
-    @ViewDelegateOf(StringItemView.class)
-    public interface Delegate extends ItemViewDelegate<Callback> {
+        Holder(View itemView) {
+            super(itemView);
+            textView = itemView.findViewById(R.id.textView);
+            button = itemView.findViewById(R.id.button);
+        }
     }
 
     public interface Callback {
@@ -57,106 +59,54 @@ public class StringItemView extends ItemView<String, StringItemView.Callback> {
 }
 ```
 
-One important thing is that we need to define an empty interface extending `ItemViewDelegate` for every item view, such as the `Delegate` interface in above code. And it should be annotated with `@ViewDelegateOf` whose parameter should be the class of target item view.
+Item 提供了很好的拓展能力：
+* 可以使用任意类型的 `ViewHolder`；
+* 可以通过 `Callback` 为 `ViewHolder` 设置 UI 事件回调。
 
-The `ItemViewDelegate` is provided by this library. It's the bridge between adapter and item view, and it only has two methods:
-
-```java
-public interface ItemViewDelegate<C> {
-    int viewType();
-    void setCallback(@Nullable C callback);
-}
-```
-
-The `viewType()` method returns a view type id (generated in *build-time*) of this item view. And you can use it to select item view type for one specified data type (see the chapter [「One to many data-view-binding」](#one-to-many-data-view-binding) for more details).
-
-The `setCallback()` method can set an event callback for this item view. You can call `getCallback()` in the item view to get callback, and then invoke methods of the callback to tell caller that some view event are triggered.
-
-### 2. Define adapter.
-
-Now we need to define a `ItemsAdapter` to assemble the item views to `RecyclerView`. It must be abstract and annotated with `@Adapter`:
+接下来你需要创建一个 Adapter 来装载你的所有 Item：
 
 ```java
-@Adapter
-public abstract class TestAdapter extends ItemAdapter {
-    private final ArrayList list = new ArrayList();
+@AdapterClass
+public abstract class TestAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> implements ItemAdapter {
+    private final LinkedList mList = new LinkedList();
 
-    public ArrayList list() {
-        return list;
+    @NonNull
+    public LinkedList list() {
+        return mList;
     }
 
     @Override
     public int getItemCount() {
-        return list.size();
+        return mList.size();
     }
 
     @NonNull
     @Override
     public <T> T getData(int position) {
-        return (T) list.get(position);
+        return (T) mList.get(position);
     }
 
     @NonNull
-    @ViewDelegate
-    public abstract StringItemView.Delegate stringView();
+    @ItemMethod
+    public abstract StringItem stringItem();
 }
 ```
 
-Take attention that this adapter must override `getItemCount()` and `getData()` methods and has no constructors having parameters. The `getItemCount()` and `getData()` describe how many data (one data corresponds to one view) in the recycler view and which data is in the specified position.
-
-And then for adding our item views to the recycler view, we need to define corresponding delegate methods in this adapter. These methods must return corresponding view delegate, be annotated with `@ViewDelegate`, and must be abstract and no-parameters. But you can name them anything you like.
-
-When you build this project, the annotation processor of this library will generate an implementation of this abstract class.
-
-### 3. Create and use adapter.
-
-Now, you can create an instance of this adapter by using `Items.create()` method. Add data to it's data collection and set view event callback for view:
+Annotation Processor 会为以上 Adapter 创建一个实现类 `TestAdapterImpl`，你可以通过以下例子来使用该 Adapter：
 
 ```java
-// Create instance
-TestAdapter adapter = Items.create(TestAdapter.class);
+// 创建 Adapter 实例
+TestAdapter adapter = new TestAdapterImpl();
 
-// Obtain data collection of this adapter, and put data into it
+// 给 Adapter 插入数据
 adapter.list().add("Item1");
 adapter.list().add("Item2");
 
-// Obtain view delegate of the StringItemView, and set view event callback for it
-adapter.stringView().setCallback(data -> {
-    // Do some reactions
+// 给 Item 设置 Callback
+adapter.stringItem().setCallback(data -> {
+    // Button 点击时
 });
 
-// Setup recycler view
+// 为 RecyclerView 设置 Adapter
 recyclerView.setAdapter(adapter);
 ```
-
-## One to many data-view-binding
-
-Above simple usage shows one to one data-view-binding of `ItemsAdapter`. In the same time it also supports one to many data-view-binding. You just need to define a view-type selector method for specified data-type in the adapter.
-
-```java
-@Adapter
-public abstract class TestAdapter extends ItemAdapter {
-    // ...
-
-    @NonNull
-    @ViewDelegate
-    public abstract StringItemView.Delegate stringView();
-
-    @NonNull
-    @ViewDelegate
-    public abstract StringItemView2.Delegate stringView2();
-    
-    @ViewSelector
-    public int viewForString(int position, @NonNull String data) {
-        if (!data.endsWith(2)) {
-            return stringView().viewType();
-        } else {
-            return stringView2().viewType();
-        }
-    }
-}
-```
-
-Take above code for example, there are two item views correspond to a same data type, so we need to define a selector method to tell the adapter which item view should be used for this data type in run-time.
-
-The selector method must have two parameters, the first is the position of data in adapter's data collection, and the second is the data itself. The return value of the method is the type id of corresponding view. At last, the method must be annotated with `@ViewSelector`.

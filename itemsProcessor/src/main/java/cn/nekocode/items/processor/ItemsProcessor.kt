@@ -60,7 +60,7 @@ class ItemsProcessor : AbstractProcessor() {
 
             // Check if this element is abstract
             if (!adapterElement.isAbstract()) {
-                printError("The adapter should be abstract: ${adapterElement.qualifiedName}")
+                printError("This adapter should be abstract: ${adapterElement.qualifiedName}")
                 continue
             }
 
@@ -68,7 +68,7 @@ class ItemsProcessor : AbstractProcessor() {
 
             // Check if this element is extending ItemAdapter
             if (adapterElement.findExtendsType(itemAdapterElement) == null) {
-                printError("The adapter class should extends class ${itemAdapterElement.qualifiedName}: " +
+                printError("This adapter class should implements interface ${itemAdapterElement.qualifiedName}: " +
                         "${adapterElement.qualifiedName}")
                 continue
             }
@@ -78,7 +78,7 @@ class ItemsProcessor : AbstractProcessor() {
                 if (element is ExecutableElement &&
                     element.simpleName.contentEquals("<init>") &&
                     element.parameters.size > 0) {
-                    printError("The adapter should not have constructor having parameters: " +
+                    printError("This adapter should not have constructor having parameters: " +
                             "${adapterElement.qualifiedName}")
                     continue@processing
                 }
@@ -106,12 +106,12 @@ class ItemsProcessor : AbstractProcessor() {
 
             // Check if this element override specified methods
             if (!adapterElement.hasOverrideMethod(getDataElement)) {
-                printError("The adapter class should override method ${Names.GET_DATA}(): " +
+                printError("This adapter class should override method ${Names.GET_DATA}(): " +
                         "${adapterElement.qualifiedName}")
                 continue
             }
             if (!adapterElement.hasOverrideMethod(getItemCountElement)) {
-                printError("The adapter class should override method ${Names.GET_ITEM_COUNT}(): " +
+                printError("This adapter class should override method ${Names.GET_ITEM_COUNT}(): " +
                         "${adapterElement.qualifiedName}")
                 continue
             }
@@ -128,14 +128,9 @@ class ItemsProcessor : AbstractProcessor() {
                 }
             }
 
-            // Find all delegate methods
-            val itemMethodElements = getOrPrintError(
-                findItemMethod(adapterElement)
-            ) ?: continue@processing
-
             // Find all items
             val items = getOrPrintError(
-                findItems(adapterElement, itemMethodElements)
+                findItems(adapterElement)
             ) ?: continue@processing
 
             // Find all selector methods
@@ -210,67 +205,60 @@ class ItemsProcessor : AbstractProcessor() {
     }
 
     /**
-     * Find all methods which are annotated with @ItemMethod
+     * Find all items from item methods of adapter
      */
-    private fun findItemMethod(
+    private fun findItems(
         adapterElement: TypeElement
-    ): Either<List<ExecutableElement>> {
+    ): Either<List<Item>> {
         val viewDelegateElement = elements().getTypeElement(Names.ITEM_ANNOTATION)
+        val baseItemElement = elements().getTypeElement(Names.BASE_ITEM)
         val methodElements = ArrayList<ExecutableElement>()
 
-        // Find delegate methods
+        // Find item methods
         for (element in adapterElement.enclosedElements) {
             if (element !is ExecutableElement) {
                 continue
             }
 
             // Check if this element is annotated with @ViewDelegate
-            if (element.findAnnotation(viewDelegateElement) != null) {
-                methodElements.add(element)
+            if (element.findAnnotation(viewDelegateElement) == null) {
+                continue
             }
-        }
 
-        // Validate these methods
-        for (element in methodElements) {
             if (!element.isAbstract()) {
-                return Either.Error("The delegate method should be abstract: " +
+                return Either.Error("This item method should be abstract: " +
                         "${adapterElement.qualifiedName}#${element.simpleName}")
             }
 
             if (element.parameters.size > 0) {
-                return Either.Error("The delegate method should not have parameters: " +
+                return Either.Error("This item method should not have parameters: " +
                         "${adapterElement.qualifiedName}#${element.simpleName}")
             }
-        }
-        return Either.Success(methodElements)
-    }
 
-    /**
-     * Find all items
-     */
-    private fun findItems(
-        adapterElement: TypeElement,
-        methodElements: List<ExecutableElement>
-    ): Either<List<Item>> {
-        val baseItemElement = elements().getTypeElement(Names.BASE_ITEM)
-        val items = ArrayList<Item>()
-
-        for (element in methodElements) {
             val returnElement = element.returnType.asElement() as TypeElement
 
             // Check if the item class is not abstract
             if (returnElement.isAbstract()) {
-                return Either.Error("The item class should not be abstract: " +
+                return Either.Error("The return type of this item method should not be abstract: " +
                         "${adapterElement.qualifiedName}#${element.simpleName}")
             }
 
             // Check if the item class is extending BaseItem
             returnElement.findExtendsType(baseItemElement)
                 ?: return Either.Error(
-                    "The item class should extends " +
+                    "The return type of this item method should extends " +
                             "${baseItemElement.qualifiedName}: " +
-                            "${returnElement.qualifiedName}"
+                            "${adapterElement.qualifiedName}#${element.simpleName}"
                 )
+
+            methodElements.add(element)
+        }
+
+        val items = ArrayList<Item>()
+
+        // Validate these methods
+        for (element in methodElements) {
+            val returnElement = element.returnType.asElement() as TypeElement
 
             // Extract types
             val itemViewGenericTypes = (returnElement.superclass as DeclaredType).typeArguments
@@ -282,7 +270,6 @@ class ItemsProcessor : AbstractProcessor() {
                 Item(element, returnElement, dataElement, holderElement, callbackElement)
             )
         }
-
         return Either.Success(items)
     }
 
@@ -313,7 +300,7 @@ class ItemsProcessor : AbstractProcessor() {
         for (element in methodElements) {
             // Check if this method is implemented
             if (element.isAbstract()) {
-                return Either.Error("The selector method should be implemented: " +
+                return Either.Error("This selector method should be implemented: " +
                         "${adapterElement.qualifiedName}#${element.simpleName}")
             }
 
@@ -321,7 +308,7 @@ class ItemsProcessor : AbstractProcessor() {
             val parameters = element.parameters
             if (parameters.size != 2 ||
                 parameters[0].asType().kind != TypeKind.INT) {
-                return Either.Error("Parameters of the selector method should be (int index, YourDataType data): " +
+                return Either.Error("The parameters of this selector method should be (int index, YourDataType data): " +
                         "${adapterElement.qualifiedName}#${element.simpleName}")
             }
 

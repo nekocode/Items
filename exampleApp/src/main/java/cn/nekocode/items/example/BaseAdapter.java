@@ -9,6 +9,7 @@ import java.util.ArrayList;
 public abstract class BaseAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> implements ItemAdapter {
     private final ArrayList mList = new ArrayList();
 
+    @NonNull
     public ArrayList getList() {
         return mList;
     }

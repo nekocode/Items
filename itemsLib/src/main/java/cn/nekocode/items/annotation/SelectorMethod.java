@@ -14,14 +14,18 @@
  * limitations under the License.
  */
 
-package cn.nekocode.items;
+package cn.nekocode.items.annotation;
 
-import android.support.annotation.Nullable;
+import java.lang.annotation.Retention;
+import java.lang.annotation.Target;
+
+import static java.lang.annotation.ElementType.METHOD;
+import static java.lang.annotation.RetentionPolicy.CLASS;
 
 /**
  * @author nekocode (nekocode.cn@gmail.com)
  */
-public interface ItemViewDelegate<C> {
-    int viewType();
-    void setCallback(@Nullable C callback);
+@Retention(CLASS)
+@Target(METHOD)
+public @interface SelectorMethod {
 }

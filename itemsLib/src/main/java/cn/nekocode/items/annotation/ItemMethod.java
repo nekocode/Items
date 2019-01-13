@@ -1,5 +1,5 @@
 /*
- * Copyright 2018. nekocode (nekocode.cn@gmail.com)
+ * Copyright 2019. nekocode (nekocode.cn@gmail.com)
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,18 +14,18 @@
  * limitations under the License.
  */
 
-package cn.nekocode.items.processor.model
+package cn.nekocode.items.annotation;
 
-import javax.lang.model.element.ExecutableElement
-import javax.lang.model.element.TypeElement
+import java.lang.annotation.Retention;
+import java.lang.annotation.Target;
+
+import static java.lang.annotation.ElementType.METHOD;
+import static java.lang.annotation.RetentionPolicy.CLASS;
 
 /**
  * @author nekocode (nekocode.cn@gmail.com)
  */
-data class Delegate(
-    val method: ExecutableElement,
-    val delegate: TypeElement,
-    val view: TypeElement,
-    val data: TypeElement,
-    val callback: TypeElement
-)
+@Retention(CLASS)
+@Target(METHOD)
+public @interface ItemMethod {
+}

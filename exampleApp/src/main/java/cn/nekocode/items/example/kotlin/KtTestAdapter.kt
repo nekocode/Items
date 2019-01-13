@@ -1,32 +1,27 @@
 package cn.nekocode.items.example.kotlin
 
-import cn.nekocode.items.ItemAdapter
-import cn.nekocode.items.annotation.Adapter
-import cn.nekocode.items.annotation.ViewDelegate
-import cn.nekocode.items.annotation.ViewSelector
+import cn.nekocode.items.annotation.AdapterClass
+import cn.nekocode.items.annotation.ItemMethod
+import cn.nekocode.items.annotation.SelectorMethod
+import cn.nekocode.items.example.BaseAdapter
 import cn.nekocode.items.example.java.HeaderOrFooterData
 
-@Adapter
-abstract class KtTestAdapter : ItemAdapter() {
-    val list = ArrayList<Any>()
+@AdapterClass
+abstract class KtTestAdapter : BaseAdapter() {
 
-    override fun <T> getData(position: Int) = list[position] as T
+    @ItemMethod
+    abstract fun headerItem(): KtHeaderItemView
 
-    override fun getItemCount() = list.size
+    @ItemMethod
+    abstract fun stringItem(): KtStringItemView
 
-    @ViewDelegate
-    abstract fun headerView(): KtHeaderItemView.Delegate
+    @ItemMethod
+    abstract fun footerItem(): KtFooterItemView
 
-    @ViewDelegate
-    abstract fun stringView(): KtStringItemView.Delegate
-
-    @ViewDelegate
-    abstract fun footerView(): KtFooterItemView.Delegate
-
-    @ViewSelector
+    @SelectorMethod
     fun viewForHeaderOrFooter(position: Int, data: HeaderOrFooterData) = if (data.isHeader) {
-        headerView().viewType()
+        headerItem().viewType
     } else {
-        footerView().viewType()
+        footerItem().viewType
     }
 }

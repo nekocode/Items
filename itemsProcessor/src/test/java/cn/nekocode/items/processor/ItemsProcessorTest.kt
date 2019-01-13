@@ -30,6 +30,7 @@ class ItemsProcessorTest {
         const val VIEW = "android.view.View"
         const val VIEW_GROUP = "android.view.ViewGroup"
         const val LAYOUT_INFLATER = "android.view.LayoutInflater"
+        const val RECYCLER_VIEW = "android.support.v7.widget.RecyclerView"
         const val METHOD_1 = "@Override public <T> T getData(int p) { return null; }"
         const val METHOD_2 = "@Override public int getItemCount() { return 0; }"
     }
@@ -38,11 +39,11 @@ class ItemsProcessorTest {
     fun annotateInterface() {
         Truth.assert_()
             .about(JavaSourcesSubjectFactory.javaSources())
-            .that(arrayListOf(adapterFile("interface", "")))
+            .that(arrayListOf(adapterFile(type = "interface", extends = "", implements = "")))
             .processedWith(ItemsProcessor())
             .failsToCompile()
             .withErrorContaining(
-                "The @${Names.ADAPTER} should not annotates to interface"
+                "The @${Names.ADAPTER_ANNOTATION} should not annotates to interface"
             )
     }
 
@@ -50,23 +51,23 @@ class ItemsProcessorTest {
     fun notAbstractClass() {
         Truth.assert_()
             .about(JavaSourcesSubjectFactory.javaSources())
-            .that(arrayListOf(adapterFile("class")))
+            .that(arrayListOf(adapterFile(type = "class")))
             .processedWith(ItemsProcessor())
             .failsToCompile()
             .withErrorContaining(
-                "The adapter should be abstract"
+                "This adapter should be abstract"
             )
     }
 
     @Test
-    fun notExtendsAdapter() {
+    fun notImplementsAdapter() {
         Truth.assert_()
             .about(JavaSourcesSubjectFactory.javaSources())
-            .that(arrayListOf(adapterFile(extends = "")))
+            .that(arrayListOf(adapterFile(implements = "")))
             .processedWith(ItemsProcessor())
             .failsToCompile()
             .withErrorContaining(
-                "The adapter class should extends class ${Names.ITEM_ADAPTER}"
+                "This adapter class should implements interface ${Names.ITEM_ADAPTER}"
             )
     }
 
@@ -79,7 +80,7 @@ class ItemsProcessorTest {
             .processedWith(ItemsProcessor())
             .failsToCompile()
             .withErrorContaining(
-                "The adapter should not have constructor having parameters"
+                "This adapter should not have constructor having parameters"
             )
     }
 
@@ -90,133 +91,97 @@ class ItemsProcessorTest {
             .that(arrayListOf(adapterFile()))
             .processedWith(ItemsProcessor())
             .failsToCompile()
-            .withErrorContaining("The adapter class should override method")
+            .withErrorContaining("This adapter class should override method")
 
         Truth.assert_()
             .about(JavaSourcesSubjectFactory.javaSources())
             .that(arrayListOf(adapterFile(body = METHOD_1)))
             .processedWith(ItemsProcessor())
             .failsToCompile()
-            .withErrorContaining("The adapter class should override method ${Names.GET_ITEM_COUNT}")
+            .withErrorContaining("This adapter class should override method ${Names.GET_ITEM_COUNT}")
 
         Truth.assert_()
             .about(JavaSourcesSubjectFactory.javaSources())
             .that(arrayListOf(adapterFile(body = METHOD_2)))
             .processedWith(ItemsProcessor())
             .failsToCompile()
-            .withErrorContaining("The adapter class should override method ${Names.GET_DATA}")
+            .withErrorContaining("This adapter class should override method ${Names.GET_DATA}")
 
         Truth.assert_()
             .about(JavaSourcesSubjectFactory.javaSources())
             .that(arrayListOf(adapterFile(body = METHOD_1 + METHOD_2)))
             .processedWith(ItemsProcessor())
             .compilesWithoutError()
+
+        Truth.assert_()
+            .about(JavaSourcesSubjectFactory.javaSources())
+            .that(arrayListOf(
+                adapterFile(className = "BaseAdapter", annotation = "", body = METHOD_1 + METHOD_2),
+                adapterFile(body = METHOD_1 + METHOD_2, extends = "extends BaseAdapter", implements = "")
+            ))
+            .processedWith(ItemsProcessor())
+            .compilesWithoutError()
     }
 
     @Test
-    fun delegateMethods() {
+    fun itemMethods() {
         fun wrap(method: String, others: String = "") = """
             $METHOD_1
             $METHOD_2
-            @${Names.VIEW_DELEGATE}
+            @${Names.ITEM_ANNOTATION}
             $method
             $others
         """.trimIndent()
 
-        var body = wrap("public com.test.TestItemView.Delegate testItemView() {};")
+        var body = wrap("public com.test.TestItem testItem() {};")
         Truth.assert_()
             .about(JavaSourcesSubjectFactory.javaSources())
-            .that(arrayListOf(itemViewFile(), adapterFile(body = body)))
+            .that(arrayListOf(itemFile(), adapterFile(body = body)))
             .processedWith(ItemsProcessor())
             .failsToCompile()
-            .withErrorContaining("The delegate method should be abstract")
+            .withErrorContaining("This item method should be abstract")
 
-        body = wrap("public abstract com.test.TestItemView.Delegate testItemView(int i) {};")
+        body = wrap("public abstract com.test.TestItem testItem(int i);")
         Truth.assert_()
             .about(JavaSourcesSubjectFactory.javaSources())
-            .that(arrayListOf(itemViewFile(), adapterFile(body = body)))
+            .that(arrayListOf(itemFile(), adapterFile(body = body)))
             .processedWith(ItemsProcessor())
             .failsToCompile()
-            .withErrorContaining("The delegate method should not have parameters")
+            .withErrorContaining("This item method should not have parameters")
 
-        body = wrap("public abstract com.test.TestItemView.Delegate testItemView();")
+        body = wrap("public abstract com.test.TestItem testItem();")
         Truth.assert_()
             .about(JavaSourcesSubjectFactory.javaSources())
-            .that(arrayListOf(itemViewFile(), adapterFile(body = body)))
+            .that(arrayListOf(itemFile(type = "abstract class"), adapterFile(body = body)))
+            .processedWith(ItemsProcessor())
+            .failsToCompile()
+            .withErrorContaining("The return type of this item method should not be abstract")
+
+        body = wrap("public abstract com.test.TestItem testItem();")
+        Truth.assert_()
+            .about(JavaSourcesSubjectFactory.javaSources())
+            .that(arrayListOf(itemFile(extends = ""), adapterFile(body = body)))
+            .processedWith(ItemsProcessor())
+            .failsToCompile()
+            .withErrorContaining("The return type of this item method should extends")
+
+        body = wrap("public abstract com.test.TestItem testItem();")
+        Truth.assert_()
+            .about(JavaSourcesSubjectFactory.javaSources())
+            .that(arrayListOf(itemFile(), adapterFile(body = body)))
             .processedWith(ItemsProcessor())
             .compilesWithoutError()
 
         body = wrap(
-            "public abstract com.test.TestItemView.Delegate testItemView();",
-            others = "@${Names.VIEW_DELEGATE} public abstract com.test.TestItemView.Delegate2 testItemView2();"
-        )
-        val itemViewOthers = """
-            @${Names.VIEW_DELEGATE_OF}(TestItemView.class)
-            interface Delegate2 extends ${Names.ITEM_VIEW_DELEGATE}<Callback> {}
-        """.trimIndent()
-        Truth.assert_()
-            .about(JavaSourcesSubjectFactory.javaSources())
-            .that(arrayListOf(itemViewFile(others = itemViewOthers), adapterFile(body = body)))
-            .processedWith(ItemsProcessor())
-            .failsToCompile()
-            .withErrorContaining("There is a duplicate item view")
-    }
-
-    @Test
-    fun delegateInterfaces() {
-        val adapterBody = """
-            $METHOD_1
-            $METHOD_2
-            @${Names.VIEW_DELEGATE}
-            public abstract com.test.TestItemView.Delegate testItemView();
-        """.trimIndent()
-
-        var itemViewFile = itemViewFile(
-            delegateType = "public class",
-            delegateExtends = ""
+            "public abstract com.test.TestItem testItem();",
+            "@${Names.ITEM_ANNOTATION} public abstract com.test.TestItem testItem2();"
         )
         Truth.assert_()
             .about(JavaSourcesSubjectFactory.javaSources())
-            .that(arrayListOf(itemViewFile, adapterFile(body = adapterBody)))
+            .that(arrayListOf(itemFile(), adapterFile(body = body)))
             .processedWith(ItemsProcessor())
             .failsToCompile()
-            .withErrorContaining("The delegate method should return an interface")
-
-        itemViewFile = itemViewFile(
-            delegateAnnotation = ""
-        )
-        Truth.assert_()
-            .about(JavaSourcesSubjectFactory.javaSources())
-            .that(arrayListOf(itemViewFile, adapterFile(body = adapterBody)))
-            .processedWith(ItemsProcessor())
-            .failsToCompile()
-            .withErrorContaining("The delegate interface should be annotated with")
-
-        itemViewFile = itemViewFile(
-            delegateExtends = ""
-        )
-        Truth.assert_()
-            .about(JavaSourcesSubjectFactory.javaSources())
-            .that(arrayListOf(itemViewFile, adapterFile(body = adapterBody)))
-            .processedWith(ItemsProcessor())
-            .failsToCompile()
-            .withErrorContaining("The delegate interface should extends interface")
-
-        itemViewFile = itemViewFile(
-            delegateExtends = "extends ${Names.ITEM_VIEW_DELEGATE}<String>"
-        )
-        Truth.assert_()
-            .about(JavaSourcesSubjectFactory.javaSources())
-            .that(arrayListOf(itemViewFile, adapterFile(body = adapterBody)))
-            .processedWith(ItemsProcessor())
-            .failsToCompile()
-            .withErrorContaining("Callback types of delegate interface and item view unmatched")
-
-        Truth.assert_()
-            .about(JavaSourcesSubjectFactory.javaSources())
-            .that(arrayListOf(itemViewFile(), adapterFile(body = adapterBody)))
-            .processedWith(ItemsProcessor())
-            .compilesWithoutError()
+            .withErrorContaining("There is a duplicate item")
     }
 
     @Test
@@ -227,104 +192,129 @@ class ItemsProcessorTest {
             $others
         """.trimIndent()
 
-        var body = wrap("@${Names.VIEW_SELECTOR} public abstract int viewTypeForString(int p, String d);")
+        var body = wrap("@${Names.SELECTOR_ANNOTATION} public abstract int viewTypeForString(int p, String d);")
         Truth.assert_()
             .about(JavaSourcesSubjectFactory.javaSources())
-            .that(arrayListOf(itemViewFile(), adapterFile(body = body)))
+            .that(arrayListOf(itemFile(), adapterFile(body = body)))
             .processedWith(ItemsProcessor())
             .failsToCompile()
-            .withErrorContaining("The selector method should be implemented")
+            .withErrorContaining("This selector method should be implemented")
 
-        body = wrap("@${Names.VIEW_SELECTOR} public int viewTypeForString(int p) { return 0; };")
+        body = wrap("@${Names.SELECTOR_ANNOTATION} public int viewTypeForString(int p) { return 0; };")
         Truth.assert_()
             .about(JavaSourcesSubjectFactory.javaSources())
-            .that(arrayListOf(itemViewFile(), adapterFile(body = body)))
+            .that(arrayListOf(itemFile(), adapterFile(body = body)))
             .processedWith(ItemsProcessor())
             .failsToCompile()
-            .withErrorContaining("Parameters of the selector method should be (int index, YourDataType data)")
+            .withErrorContaining("The parameters of this selector method should be (int index, YourDataType data)")
 
-        body = wrap("@${Names.VIEW_SELECTOR} public int viewTypeForString(String p, String d) { return 0; };")
+        body = wrap("@${Names.SELECTOR_ANNOTATION} public int viewTypeForString(String p, String d) { return 0; };")
         Truth.assert_()
             .about(JavaSourcesSubjectFactory.javaSources())
-            .that(arrayListOf(itemViewFile(), adapterFile(body = body)))
+            .that(arrayListOf(itemFile(), adapterFile(body = body)))
             .processedWith(ItemsProcessor())
             .failsToCompile()
-            .withErrorContaining("Parameters of the selector method should be (int index, YourDataType data)")
+            .withErrorContaining("The parameters of this selector method should be (int index, YourDataType data)")
 
-        body = wrap("@${Names.VIEW_SELECTOR} public int viewTypeForString(int p, String d) { return 0; };")
+        body = wrap("@${Names.SELECTOR_ANNOTATION} public int viewTypeForString(int p, String d) { return 0; };")
         Truth.assert_()
             .about(JavaSourcesSubjectFactory.javaSources())
-            .that(arrayListOf(itemViewFile(), adapterFile(body = body)))
+            .that(arrayListOf(itemFile(), adapterFile(body = body)))
             .processedWith(ItemsProcessor())
             .compilesWithoutError()
 
         body = wrap(
-            "@${Names.VIEW_SELECTOR} public int viewTypeForString(int p, String d) { return 0; };" +
-                    "@${Names.VIEW_SELECTOR} public int viewTypeForString2(int p, String d) { return 0; };"
+            "@${Names.SELECTOR_ANNOTATION} public int viewTypeForString(int p, String d) { return 0; };" +
+                    "@${Names.SELECTOR_ANNOTATION} public int viewTypeForString2(int p, String d) { return 0; };"
         )
         Truth.assert_()
             .about(JavaSourcesSubjectFactory.javaSources())
-            .that(arrayListOf(itemViewFile(), adapterFile(body = body)))
+            .that(arrayListOf(itemFile(), adapterFile(body = body)))
             .processedWith(ItemsProcessor())
             .failsToCompile()
-            .withErrorContaining("There is a selector method having duplicate data type in adapter")
+            .withErrorContaining("More than one selector method has one same data type in adapter")
 
         body = wrap(
-            "@${Names.VIEW_DELEGATE} public abstract com.test.TestItemView.Delegate testItemView();" +
-                    "@${Names.VIEW_DELEGATE} public abstract com.test.TestItemView2.Delegate testItemView2();"
+            "@${Names.ITEM_ANNOTATION} public abstract com.test.TestItem testItem();" +
+                    "@${Names.ITEM_ANNOTATION} public abstract com.test.TestItem2 testItem2();"
         )
         Truth.assert_()
             .about(JavaSourcesSubjectFactory.javaSources())
             .that(
                 arrayListOf(
-                    itemViewFile(),
-                    itemViewFile(className = "TestItemView2"),
+                    itemFile(),
+                    itemFile(className = "TestItem2"),
                     adapterFile(body = body)
                 )
             )
             .processedWith(ItemsProcessor())
             .failsToCompile()
             .withErrorContaining("Missing view selector for duplicate data type")
+
+        body = wrap(
+            "@${Names.ITEM_ANNOTATION} public abstract com.test.TestItem testItem();" +
+                    "@${Names.ITEM_ANNOTATION} public abstract com.test.TestItem2 testItem2();" +
+                    "@${Names.SELECTOR_ANNOTATION} public int viewTypeForString(int p, String d) { return 0; };"
+        )
+        Truth.assert_()
+            .about(JavaSourcesSubjectFactory.javaSources())
+            .that(
+                arrayListOf(
+                    itemFile(),
+                    itemFile(className = "TestItem2"),
+                    adapterFile(body = body)
+                )
+            )
+            .processedWith(ItemsProcessor())
+            .compilesWithoutError()
     }
 
     private fun adapterFile(
+        className: String = "TestAdapter",
+        annotation: String = "@${Names.ADAPTER_ANNOTATION}",
         type: String = "abstract class",
-        extends: String = "extends ${Names.ITEM_ADAPTER}",
+        extends: String = "extends ${Names.RECYCLER_VIEW_ADAPTER}<$RECYCLER_VIEW.ViewHolder>",
+        implements: String = "implements ${Names.ITEM_ADAPTER}",
         body: String = ""
-    ) = JavaFileObjects.forSourceString(
-        "com.test.TestAdapter",
-        """
-            package com.test;
-            @${Names.ADAPTER}
-            public $type TestAdapter $extends { $body }
-        """.trimIndent()
-    )
-
-    private fun itemViewFile(
-        className: String = "TestItemView",
-        delegateAnnotation: String = "@${Names.VIEW_DELEGATE_OF}($className.class)",
-        delegateType: String = "interface",
-        delegateExtends: String = "extends ${Names.ITEM_VIEW_DELEGATE}<Callback>",
-        others: String = ""
     ) = JavaFileObjects.forSourceString(
         "com.test.$className",
         """
-            package com.test;
-            public class $className extends ${Names.ITEM_VIEW}<String, $className.Callback> {
-                @Override
-                public $VIEW onCreateItemView($LAYOUT_INFLATER i, $VIEW_GROUP p) {
-                    return null;
-                }
-                @Override
-                public void onBindData(String d) {
-                }
-                $delegateAnnotation
-                $delegateType Delegate $delegateExtends {}
-                public interface Callback {
-                    void onClick(String d);
-                }
-                $others
-            }
+package com.test;
+$annotation
+public $type $className $extends $implements {
+    $body
+}
+        """.trimIndent()
+    )
+
+    private fun itemFile(
+        className: String = "TestItem",
+        type: String = "class",
+        extends: String = "extends ${Names.BASE_ITEM}<String, $className.Holder, $className.Callback>"
+    ) = JavaFileObjects.forSourceString(
+        "com.test.$className",
+        """
+package com.test;
+public $type $className $extends {
+    public $className(${Names.ITEM_ADAPTER} adapter, int viewType) {
+        super(adapter, viewType);
+    }
+    @Override
+    public Holder onCreateViewHolder($LAYOUT_INFLATER i, $VIEW_GROUP p) {
+        return null;
+    }
+    @Override
+    public void onBindViewHolder(Holder h, int p, String d) {
+    }
+    static class Holder extends $RECYCLER_VIEW.ViewHolder {
+        Holder(android.view.View itemView) {
+            super(itemView);
+        }
+    }
+    public interface Callback {
+        void onClick(String d);
+    }
+}
         """.trimIndent()
     )
 }

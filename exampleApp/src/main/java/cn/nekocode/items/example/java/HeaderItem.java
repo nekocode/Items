@@ -17,36 +17,42 @@
 package cn.nekocode.items.example.java;
 
 import android.support.annotation.NonNull;
+import android.support.v7.widget.RecyclerView;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.TextView;
-import cn.nekocode.items.ItemView;
-import cn.nekocode.items.ItemViewDelegate;
-import cn.nekocode.items.annotation.ViewDelegateOf;
+import cn.nekocode.items.BaseItem;
+import cn.nekocode.items.ItemAdapter;
 import cn.nekocode.items.example.R;
 
 /**
  * @author nekocode (nekocode.cn@gmail.com)
  */
-public class HeaderItemView extends ItemView<HeaderOrFooterData, HeaderItemView.Callback> {
-    private TextView textView;
+public class HeaderItem extends BaseItem<HeaderOrFooterData, HeaderItem.Holder, HeaderItem.Callback> {
+
+    public HeaderItem(ItemAdapter adapter, int viewType) {
+        super(adapter, viewType);
+    }
 
     @NonNull
     @Override
-    public View onCreateItemView(@NonNull LayoutInflater inflater, @NonNull ViewGroup parent) {
-        final View itemView = inflater.inflate(R.layout.item_header, parent, false);
-        textView = itemView.findViewById(R.id.textView);
-        return itemView;
+    public Holder onCreateViewHolder(@NonNull LayoutInflater inflater, @NonNull ViewGroup parent) {
+        return new Holder(inflater.inflate(R.layout.item_header, parent, false));
     }
 
     @Override
-    public void onBindData(@NonNull HeaderOrFooterData data) {
-        textView.setText(data.getText());
+    public void onBindViewHolder(@NonNull Holder holder, int position, @NonNull HeaderOrFooterData data) {
+        holder.textView.setText(data.getText());
     }
 
-    @ViewDelegateOf(HeaderItemView.class)
-    public interface Delegate extends ItemViewDelegate<Callback> {
+    static class Holder extends RecyclerView.ViewHolder {
+        TextView textView;
+
+        Holder(View itemView) {
+            super(itemView);
+            textView = itemView.findViewById(R.id.textView);
+        }
     }
 
     public interface Callback {

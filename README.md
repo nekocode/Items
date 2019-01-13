@@ -2,12 +2,12 @@
 
 [![Build Status](https://travis-ci.com/nekocode/Items.svg?branch=master)](https://travis-ci.com/nekocode/Items) [![codecov](https://codecov.io/gh/nekocode/Items/branch/master/graph/badge.svg)](https://codecov.io/gh/nekocode/Items)
 
-这个库可以为 Android 的 `RecyclerView` 生成基于 **Data-View-Binding** 的 `Adapter`。
+这个库可以为 Android 的 `RecyclerView` 生成基于 **Data-View-Binding** 的 Adapter。
 
 对比其他一些类似的开源库，它有以下的一些优势：
-* 更好的拓展性。这个库不需要你继承特定的 Adapter 或 ViewHolder 类，你可以继承任何第三方提供的基类。
-* 更好的性能。使用 Annotation Processor 意味着实现 Binding 时无需使用反射。
-* 更好的兼容性。和传统的 Adapter 写法类似，可以快速从旧的 Codebase 迁移到新的写法。
+* 更好的拓展性。这个库不需要你继承特定的 Adapter 或 ViewHolder 类，你可以继承任何第三方提供的基类；
+* 更好的性能。使用 Annotation Processor 意味着实现 Binding 时无需使用反射；
+* 更好的兼容性。和传统的 Adapter 写法类似，可以快速从旧的 Codebase 迁移到新的写法；
 * 更可靠的代码。单元测试覆盖了大部分的 Case。
 
 ## 集入
@@ -24,9 +24,11 @@ dependencies {
 }
 ```
 
+注意，在 Kotlin 工程中，需要使用 `kapt` 关键字代替 `annotationProcessor` 关键字。
+
 ## 使用
 
-使用 `BaseItem` 能够帮助你把 `ViewHolder` 的创建和绑定从 `Adapter` 中提取出来，并且与特定的数据类型绑定。例如你可以为 `String` 类型的数据创建一个 Item：
+使用 `BaseItem` 能够帮助你把 `ViewHolder` 的创建和绑定从 Adapter 中提取出来，并且与特定的数据类型绑定。例如你可以为 `String` 类型的数据创建一个 Item：
 
 ```java
 public class StringItem extends BaseItem<String, StringItem.Holder, StringItem.Callback> {
@@ -53,6 +55,7 @@ public class StringItem extends BaseItem<String, StringItem.Holder, StringItem.C
         holder.data = data;
         holder.textView.setText(data);
     }
+
     static class Holder extends RecyclerView.ViewHolder {
         private TextView textView;
         private Button button;

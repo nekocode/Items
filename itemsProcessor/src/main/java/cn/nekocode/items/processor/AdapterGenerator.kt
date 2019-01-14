@@ -160,7 +160,7 @@ $itemGetters
 """.trimStartEndBlanks()
 
         // Write code of class to file
-        mEvn.filer.createSourceFile("${mAdapter.qualifiedName}$CLASSNAME_POSTFIX").openWriter().use {
+        mEvn.filer.createSourceFile("${mAdapter.qualifiedName}$CLASSNAME_POSTFIX", mAdapter).openWriter().use {
             it.write(code)
         }
     }

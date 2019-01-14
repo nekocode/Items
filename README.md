@@ -6,7 +6,7 @@
 
 对比其他一些类似的开源库，它有以下的一些优势：
 * 更好的拓展性。这个库不需要你继承特定的 Adapter 或 ViewHolder 类，你可以继承任何第三方提供的基类；
-* 更好的性能。使用 Annotation Processor 意味着实现 Binding 时无需使用反射；
+* 更好的性能。使用 Annotation Processor 意味着实现 Binding 时无需使用反射。支持 [增量处理](https://docs.gradle.org/current/userguide/java_plugin.html#sec:incremental_annotation_processing)；
 * 更低的侵入性。和传统的 Adapter 写法类似，可以快速从旧的 Codebase 迁移到新的写法；
 * 更可靠的代码。提供了单元测试覆盖大部分的 Case。
 
